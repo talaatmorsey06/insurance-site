@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>منظومة إصدار وثائق التأمين</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="auth" class="card">
+ <h2 id="atitle" style="text-align:center"></h2>
+ <div class="grid" style="grid-template-columns:1fr" id="afields"></div>
+ <div class="err" id="aerr"></div>
+ <div class="btns"><button class="btn" id="abtn" style="width:100%"></button></div>
+ <p id="anote" style="font-size:.8rem;color:var(--mut);text-align:center"></p>
+</div>
+
+<div id="app" hidden>
+<header class="np"><div><h1>منظومة إصدار وثائق التأمين</h1><small id="who"></small></div><button id="logout">تسجيل الخروج</button></header>
+<main>
+<div class="tabs np" id="tabs"></div>
+
+<section id="p-ins">
+ <div class="card np"><h2 id="ftitle"></h2><div class="grid" id="form"></div>
+  <div style="margin-top:12px"><label>رفع الصور (الهوية، رخصة السيارة، صور المعاينة…)</label><input type="file" id="img" accept="image/*" multiple><div class="thumbs" id="thumbs"></div></div>
+  <div class="calc" id="calc"></div><div class="err" id="err"></div>
+  <div class="btns"><button class="btn" id="gen">إصدار الوثيقة</button><button class="btn alt" id="reset">مسح البيانات</button></div></div>
+ <div id="doc" hidden></div>
+ <div class="btns np" id="docbtns" hidden style="margin-bottom:14px"><button class="btn" onclick="window.print()">طباعة / حفظ PDF</button></div>
+ <div class="card np"><h2 id="ltitle"></h2><div class="scroll"><table><thead><tr><th>رقم الوثيقة</th><th>المؤمَّن له</th><th>الإجمالي</th><th>التاريخ</th><th>أصدرها</th><th></th></tr></thead><tbody id="rows"></tbody></table></div></div>
+</section>
+
+<section id="p-rep" hidden class="np">
+ <div class="card"><h2>التقارير</h2>
+  <div class="grid"><div><label>من تاريخ</label><input type="date" id="rf"></div><div><label>إلى تاريخ</label><input type="date" id="rt"></div></div>
+  <div class="btns"><button class="btn" id="rgo">عرض التقرير</button><button class="btn alt" onclick="window.print()">طباعة</button></div></div>
+ <div class="card" id="rout"></div>
+</section>
+
+<section id="p-usr" hidden class="np">
+ <div class="card"><h2>إضافة مستخدم جديد</h2>
+  <div class="grid"><div><label>الاسم الكامل</label><input id="un"></div><div><label>اسم المستخدم</label><input id="uu" autocomplete="off"></div><div><label>كلمة المرور</label><input id="up" type="password" autocomplete="new-password"></div>
+  <div><label>الصفة / الصلاحية</label><select id="ur"><option>مدير</option><option>موظف</option><option>موظفة</option></select></div><div style="grid-column:1/-1"><label>الأنواع المسموح للموظف بإصدارها</label><div class="perms" id="uperm"></div></div></div>
+  <div class="err" id="uerr"></div><div class="btns"><button class="btn" id="uadd">إضافة</button></div></div>
+ <div class="card"><h2>المستخدمون (إعادة تعيين كلمة المرور للمدير فقط)</h2><div class="scroll"><table><thead><tr><th>الاسم</th><th>المستخدم</th><th>الصفة</th><th>الأنواع المسموحة</th><th>كلمة مرور جديدة</th><th></th></tr></thead><tbody id="urows"></tbody></table></div></div>
+</section>
+</main>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
