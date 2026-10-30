@@ -34,7 +34,7 @@ $("abtn").onclick=async()=>{
 $("logout").onclick=()=>{me=null;$("app").hidden=true;$("auth").hidden=false;mode="login";authUI()};
 function enter(){
  $("auth").hidden=true;$("app").hidden=false;
- $("who").textContent=me.tmp?"مدير مؤقت (لم يُحدَّد مدير بعد)":me.n+" ("+me.role+")";$("logout").hidden=!!me.tmp;$("tmpb").hidden=!me.tmp;
+ $("who").textContent=me.tmp?"مدير مؤقت (لم يُحدَّد مدير بعد)":me.n+" ("+me.role+")";$("logout").hidden=!!me.tmp;$("tmpb").hidden=!(me.tmp||me.def);$("tmpt").textContent=me.def?"⚠ كلمة مرور المدير ما زالت الافتراضية، غيّرها الآن من «المستخدمون والصلاحيات».":"⚠ لم يتم تحديد مدير للنظام بعد.";
  $("dt").textContent=new Date().toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"}).replace(/ /g,"-");
  const hasCar=PERMS.some(p=>p[0].startsWith("car")&&can(p[0])),ins=[],dep=[];
  if(can("gen")){dep.push("التأمينات العامة");ins.push(["sgen","وثائق التأمينات العامة"])}
@@ -163,7 +163,7 @@ function renderUsers(){
  $("uperm").innerHTML=permBoxes(PERMS.map(p=>p[0]));
  const noM=!users.length;$("mgr").hidden=!noM;$("ucard").hidden=noM;$("utbl").hidden=noM;
  $("urows").innerHTML=users.map((u,i)=>`<tr><td>${esc(u.n)}</td><td>${esc(u.u)}</td><td>${esc(u.role)}</td><td class="perms" data-u="${i}">${u.role=="مدير"?"الكل":permBoxes(u.perm||PERMS.map(p=>p[0]))}</td><td><input type="password" id="np${i}" placeholder="كلمة مرور جديدة" autocomplete="new-password"></td><td style="white-space:nowrap"><button class="btn sm" data-r="${i}">إعادة تعيين</button> ${u.u==me.u||u.u=="admin"?"":`<button class="btn sm red" data-d="${i}">حذف</button>`}<div class="err" id="ue${i}"></div></td></tr>`).join("");
- $("urows").querySelectorAll("[data-r]").forEach(b=>b.onclick=async()=>{const i=+b.dataset.r,p=$("np"+i).value;if(p.length<4){$("ue"+i).textContent="4 أحرف على الأقل";return}users[i].h=await sha(p);sv("ins_users",users);$("ue"+i).innerHTML='<span class="ok">تم التغيير</span>';$("np"+i).value=""});
+ $("urows").querySelectorAll("[data-r]").forEach(b=>b.onclick=async()=>{const i=+b.dataset.r,p=$("np"+i).value;if(p.length<4){$("ue"+i).textContent="4 أحرف على الأقل";return}users[i].h=await sha(p);sv("ins_users",users);if(users[i].def){delete users[i].def;sv("ins_users",users);$("tmpb").hidden=true}$("ue"+i).innerHTML='<span class="ok">تم التغيير</span>';$("np"+i).value=""});
  $("urows").querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{if(b.dataset.s){users.splice(+b.dataset.d,1);sv("ins_users",users);renderUsers()}else{b.dataset.s=1;b.textContent="تأكيد الحذف؟"}});
  $("urows").querySelectorAll("td[data-u] input").forEach(c=>c.onchange=()=>{const td=c.closest("td");users[+td.dataset.u].perm=[...td.querySelectorAll("input:checked")].map(x=>x.dataset.p);sv("ins_users",users)});
 }
@@ -347,5 +347,7 @@ $("madd").onclick=async()=>{
  if(!sv("ins_docs",docs))sv("ins_docs",docs.map(d=>({...d,imgs:[]})));saveC();
  me=m;["mn","mu","mp"].forEach(i=>$(i).value="");enter();
 };
-users.forEach(u=>{if(u.u=="admin")u.role="مدير"});
-if(users.length)authUI();else{me={n:"مدير مؤقت",u:"",role:"مدير",tmp:true};enter()}
+(async()=>{
+ if(!users.length){users=[{n:"مدير النظام",u:"admin",h:await sha("admin123"),role:"مدير",def:true}];sv("ins_users",users)}
+ users.forEach(u=>{if(u.u=="admin")u.role="مدير"});mode="login";authUI();
+})();
