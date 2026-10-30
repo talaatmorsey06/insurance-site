@@ -16,33 +16,102 @@
 </div>
 
 <div id="app" hidden>
-<header class="np"><div><h1>منظومة إصدار وثائق التأمين</h1><small id="who"></small></div><button id="logout">تسجيل الخروج</button></header>
+<div id="top" class="np"><div class="inf"><div><b>المستخدم الحالي</b><span id="who"></span> <button id="logout" title="تسجيل الخروج">⎋ خروج</button></div><div><b>منطقة النظام</b><span>المركز الرئيسي</span></div><div><b>التاريخ الحالي</b><span id="dt"></span></div><div><b>القسم</b><span id="dep"></span></div></div><div class="ttl" id="ttl"><h1>نظام التأمين العام</h1></div><div class="logo" id="logo"><i>🛡️</i>شعار الشركة</div></div>
+<nav id="menu" class="np"></nav>
+<div id="tmpb" class="phd np" hidden style="margin:8px;background:#fff3cd;color:#664d03;border-color:#e6c200">⚠ لم يتم تحديد مدير للنظام بعد، والجميع يعمل بصلاحيات كاملة. <button class="btn sm" id="tmpgo">تحديد المدير الآن</button></div>
 <main>
-<div class="tabs np" id="tabs"></div>
+
+
+<section id="p-home"><div id="home"><div class="wm">GIS</div><p id="hnote"></p></div></section>
 
 <section id="p-ins">
  <div class="card np"><h2 id="ftitle"></h2><div class="grid" id="form"></div>
   <div style="margin-top:12px"><label>رفع الصور (الهوية، رخصة السيارة، صور المعاينة…)</label><input type="file" id="img" accept="image/*" multiple><div class="thumbs" id="thumbs"></div></div>
-  <div class="calc" id="calc"></div><div class="err" id="err"></div>
-  <div class="btns"><button class="btn" id="gen">إصدار الوثيقة</button><button class="btn alt" id="reset">مسح البيانات</button></div></div>
+  <div class="err" id="err"></div>
+  <div class="btns"><button class="btn" id="gen">التالي: احتساب القسط ◂</button><button class="btn alt" id="reset">مسح البيانات</button><button class="btn alt" id="back">رجوع لقائمة الوثائق</button></div></div>
  <div id="doc" hidden></div>
  <div class="btns np" id="docbtns" hidden style="margin-bottom:14px"><button class="btn" onclick="window.print()">طباعة / حفظ PDF</button></div>
- <div class="card np"><h2 id="ltitle"></h2><div class="scroll"><table><thead><tr><th>رقم الوثيقة</th><th>المؤمَّن له</th><th>الإجمالي</th><th>التاريخ</th><th>أصدرها</th><th></th></tr></thead><tbody id="rows"></tbody></table></div></div>
+ 
 </section>
 
-<section id="p-rep" hidden class="np">
- <div class="card"><h2>التقارير</h2>
+<section id="p-search" hidden class="np">
+ <div class="card" style="border-color:#c9b458"><h2 id="sh" style="text-decoration:underline"></h2>
+  <div class="grid" id="sform"></div>
+  <div class="btns"><button class="btn" id="sgo">بحث</button><button class="btn alt" id="sclr">إلغاء</button></div></div>
+ <div class="card"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><b>اختر وثيقة تأمين</b><button class="btn" id="snew">＋ إضافة جديدة</button></div>
+  <div class="scroll" style="margin-top:10px"><table id="stbl"><thead id="shead"></thead><tbody id="srows"></tbody></table></div><div id="scount" style="color:var(--mut);font-size:.85rem;margin-top:6px"></div></div>
+</section>
+
+<section id="p-prem" hidden class="np">
+ <div class="tb"><button id="pr_issue">💾 حفظ وإصدار الوثيقة</button><button id="pr_back">↩ تعديل بيانات الوثيقة</button><button id="pr_calc">🧮 إعادة احتساب</button><button id="pr_close">✖ إغلاق</button></div>
+ <div class="phd">احتساب قسط الوثيقة — <span id="pr_info"></span></div>
+ <div class="card"><div class="scroll"><table id="pr_top"><thead><tr><th>الوصف</th><th>مبلغ التأمين</th><th>القسط المستحق</th><th>اختيار</th><th>احسب</th></tr></thead><tbody><tr><td id="pr_d"></td><td id="pr_s"></td><td id="pr_due"></td><td style="text-align:center;color:var(--ok)">✔</td><td><button class="btn sm" id="pr_go">🧮 احسب</button></td></tr></tbody></table></div></div>
+ <div class="card"><h2>التغطيات</h2><div class="scroll"><table id="pr_grid"></table></div></div>
+ <div class="card"><h2>مجموع الأقساط</h2><div class="scroll"><table id="pr_sum"></table></div>
+  <div style="margin-top:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><label style="display:flex;gap:6px;align-items:center;color:var(--tx);margin:0"><input type="checkbox" id="pr_mc" style="width:auto"> القسط اليدوي (تحديد القسط المستحق يدويًا)</label><input type="number" id="pr_mv" min="0" style="max-width:200px" disabled></div>
+  <div class="err" id="pr_err"></div></div>
+</section>
+
+<section id="p-clm" hidden class="np">
+ <div class="card"><h2>إنشاء تعويض (مطالبة جديدة)</h2>
+  <div class="grid">
+   <div><label>رقم المطالبة</label><input id="c_no" readonly></div>
+   <div><label>رقم الوثيقة</label><input id="c_pno" list="c_pl" autocomplete="off" placeholder="اكتب أو اختر رقم الوثيقة"><datalist id="c_pl"></datalist></div>
+   <div><label>اسم العميل</label><input id="c_cl" readonly></div>
+   <div><label>بيانات الوثيقة</label><input id="c_pi" readonly></div>
+   <div><label>تاريخ الحادث</label><input id="c_ad" type="date"></div>
+   <div><label>نوع التعويض</label><select id="c_ty"></select></div>
+   <div><label>مبلغ المطالبة (ج.م)</label><input id="c_am" type="number" min="0"></div>
+   <div style="grid-column:1/-1"><label>وصف الحادث</label><input id="c_ds"></div>
+  </div>
+  <div style="margin-top:12px"><label>صور المعاينة والمستندات</label><input type="file" id="c_img" accept="image/*" multiple><div class="thumbs" id="c_th"></div></div>
+  <div class="err" id="c_err"></div>
+  <div class="btns"><button class="btn" id="c_save">حفظ المطالبة</button><button class="btn alt" id="c_clr">مسح البيانات</button></div></div>
+ <div class="card"><h2>المطالبات المسجَّلة</h2><div class="scroll"><table><thead><tr><th>رقم المطالبة</th><th>رقم الوثيقة</th><th>العميل</th><th>النوع</th><th>تاريخ الحادث</th><th>المبلغ</th><th>الحالة</th><th>المُسجِّل</th></tr></thead><tbody id="c_rows"></tbody></table></div></div>
+</section>
+
+<section id="p-crep" hidden>
+ <div class="card np"><h2>تقارير التعويضات</h2>
+  <div class="grid"><div><label>تاريخ الحادث من</label><input type="date" id="cf"></div><div><label>إلى</label><input type="date" id="ct"></div><div><label>الحالة</label><select id="cs"></select></div><div><label>نوع التعويض</label><select id="cty"></select></div></div>
+  <div class="btns"><button class="btn" id="cgo">عرض التقرير</button><button class="btn alt" onclick="window.print()">طباعة</button></div></div>
+ <div class="card" id="cout"></div>
+</section>
+
+<section id="p-ri" hidden class="np">
+ <div class="card"><h2>إضافة اتفاقية إعادة تأمين</h2>
+  <div class="grid">
+   <div><label>رقم الاتفاقية</label><input id="ri_no" readonly></div>
+   <div><label>اسم الاتفاقية</label><input id="ri_n"></div>
+   <div><label>نوع الاتفاقية</label><select id="ri_t"><option>حصص نسبية (Quota Share)</option><option>فائض الحد (Surplus)</option><option>فائض الخسارة (Excess of Loss)</option><option>اختيارية (Facultative)</option></select></div>
+   <div><label>معيد التأمين</label><input id="ri_r"></div>
+   <div><label>القسم</label><select id="ri_d"><option>التأمينات العامة</option><option>تأمين السيارات</option><option>الكل</option></select></div>
+   <div><label>تاريخ البداية</label><input id="ri_s" type="date"></div>
+   <div><label>تاريخ النهاية</label><input id="ri_e" type="date"></div>
+   <div><label>نسبة الإسناد %</label><input id="ri_c" type="number" min="0" max="100" step="any"></div>
+   <div><label>حد الاحتفاظ (ج.م)</label><input id="ri_k" type="number" min="0"></div>
+   <div><label>الحد الأقصى للاتفاقية (ج.م)</label><input id="ri_l" type="number" min="0"></div>
+   <div><label>عمولة إعادة التأمين %</label><input id="ri_m" type="number" min="0" max="100" step="any"></div>
+   <div style="grid-column:1/-1"><label>ملاحظات (اختياري)</label><input id="ri_o"></div>
+  </div>
+  <div class="err" id="ri_err"></div>
+  <div class="btns"><button class="btn" id="ri_save">حفظ الاتفاقية</button><button class="btn alt" id="ri_clr">مسح البيانات</button></div></div>
+ <div class="card"><h2>اتفاقيات إعادة التأمين</h2><div class="scroll"><table><thead><tr><th>رقم الاتفاقية</th><th>الاسم</th><th>النوع</th><th>معيد التأمين</th><th>القسم</th><th>الفترة</th><th>الإسناد %</th><th>حد الاحتفاظ</th><th>الحد الأقصى</th><th>العمولة %</th><th>الحالة</th><th></th></tr></thead><tbody id="ri_rows"></tbody></table></div></div>
+</section>
+
+<section id="p-rep" hidden>
+ <div class="card np"><h2>التقارير</h2>
   <div class="grid"><div><label>من تاريخ</label><input type="date" id="rf"></div><div><label>إلى تاريخ</label><input type="date" id="rt"></div></div>
   <div class="btns"><button class="btn" id="rgo">عرض التقرير</button><button class="btn alt" onclick="window.print()">طباعة</button></div></div>
  <div class="card" id="rout"></div>
 </section>
 
 <section id="p-usr" hidden class="np">
- <div class="card"><h2>إضافة مستخدم جديد</h2>
+ <div class="card" id="mgr" hidden style="border-color:#e6c200"><h2>تحديد مدير النظام</h2><p style="color:var(--mut);font-size:.9rem;margin-top:0">لم يُحدَّد مدير بعد. أنشئ حساب المدير الآن؛ بعد ذلك سيُطلب تسجيل الدخول من الجميع، وسيتحكم المدير في الحسابات والصلاحيات.</p><div class="grid"><div><label>الاسم الكامل</label><input id="mn"></div><div><label>اسم المستخدم</label><input id="mu" autocomplete="off" value="admin"></div><div><label>كلمة المرور</label><input id="mp" type="password" autocomplete="new-password"></div></div><div class="err" id="merr"></div><div class="btns"><button class="btn" id="madd">تحديد المدير</button></div></div>
+ <div class="card" id="ucard"><h2>إضافة مستخدم جديد</h2>
   <div class="grid"><div><label>الاسم الكامل</label><input id="un"></div><div><label>اسم المستخدم</label><input id="uu" autocomplete="off"></div><div><label>كلمة المرور</label><input id="up" type="password" autocomplete="new-password"></div>
-  <div><label>الصفة / الصلاحية</label><select id="ur"><option>مدير</option><option>موظف</option><option>موظفة</option></select></div><div style="grid-column:1/-1"><label>الأنواع المسموح للموظف بإصدارها</label><div class="perms" id="uperm"></div></div></div>
+  <div><label>الصفة / الصلاحية</label><select id="ur"><option>مدير</option><option>موظف</option><option>موظفة</option></select></div><div style="grid-column:1/-1"><label>الأنواع والصلاحيات المسموح للموظف بها</label><div class="perms" id="uperm"></div></div></div>
   <div class="err" id="uerr"></div><div class="btns"><button class="btn" id="uadd">إضافة</button></div></div>
- <div class="card"><h2>المستخدمون (إعادة تعيين كلمة المرور للمدير فقط)</h2><div class="scroll"><table><thead><tr><th>الاسم</th><th>المستخدم</th><th>الصفة</th><th>الأنواع المسموحة</th><th>كلمة مرور جديدة</th><th></th></tr></thead><tbody id="urows"></tbody></table></div></div>
+ <div class="card" id="utbl"><h2>المستخدمون (إعادة تعيين كلمة المرور للمدير فقط)</h2><div class="scroll"><table><thead><tr><th>الاسم</th><th>المستخدم</th><th>الصفة</th><th>الأنواع المسموحة</th><th>كلمة مرور جديدة</th><th></th></tr></thead><tbody id="urows"></tbody></table></div></div>
 </section>
 </main>
 </div>
