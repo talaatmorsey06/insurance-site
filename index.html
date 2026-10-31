@@ -30,7 +30,7 @@
   <div class="err" id="err"></div>
   <div class="btns"><button class="btn" id="gen">التالي: احتساب القسط ◂</button><button class="btn alt" id="reset">مسح البيانات</button><button class="btn alt" id="back">رجوع لقائمة الوثائق</button></div></div>
  <div id="doc" hidden></div>
- <div class="btns np" id="docbtns" hidden style="margin-bottom:14px"><button class="btn" onclick="window.print()">طباعة / حفظ PDF</button></div>
+ <div class="btns np" id="docbtns" hidden style="margin-bottom:14px"><button class="btn" onclick="window.print()">طباعة / حفظ PDF</button><button class="btn alt" id="doc_edit" hidden>✎ تعديل الوثيقة</button><button class="btn red" id="doc_del" hidden>🗑 حذف الوثيقة</button></div>
  
 </section>
 
@@ -42,8 +42,15 @@
   <div class="scroll" style="margin-top:10px"><table id="stbl"><thead id="shead"></thead><tbody id="srows"></tbody></table></div><div id="scount" style="color:var(--mut);font-size:.85rem;margin-top:6px"></div></div>
 </section>
 
+<section id="p-terms" hidden class="np">
+ <div class="tb"><button id="tm_next">◂ التالي: احتساب القسط</button><button id="tm_back">↩ تعديل بيانات الوثيقة</button><button id="tm_reset">↺ الشروط الافتراضية</button><button id="tm_close">✖ إغلاق</button></div>
+ <div class="phd">شروط الوثيقة — <span id="tm_info"></span></div>
+ <div class="card"><h2>الشروط العامة<span id="tm_cnt" style="font-weight:400;font-size:.85rem;color:var(--mut)"></span></h2><div id="tm_list"></div><div class="btns"><button class="btn alt" id="tm_all">☑ تحديد الكل</button><button class="btn alt" id="tm_none">☐ إلغاء التحديد</button><button class="btn alt" id="tm_add">＋ إضافة شرط</button></div></div>
+ <div class="card"><h2>الشروط الخاصة والاستثناءات</h2><div class="grid"><div style="grid-column:1/-1"><label>التحمل (Deductible) — اختياري</label><input id="tm_ded" placeholder="مثال: 5% من قيمة الخسارة بحد أدنى 1000 ج.م"></div></div><div style="margin-top:10px"><label>شروط خاصة بهذه الوثيقة</label><textarea id="tm_sp" rows="3"></textarea></div><div style="margin-top:10px"><label>الاستثناءات</label><textarea id="tm_ex" rows="3"></textarea></div></div>
+</section>
+
 <section id="p-prem" hidden class="np">
- <div class="tb"><button id="pr_issue">💾 حفظ وإصدار الوثيقة</button><button id="pr_back">↩ تعديل بيانات الوثيقة</button><button id="pr_calc">🧮 إعادة احتساب</button><button id="pr_close">✖ إغلاق</button></div>
+ <div class="tb"><button id="pr_issue">💾 حفظ وإصدار الوثيقة</button><button id="pr_back">↩ رجوع للشروط</button><button id="pr_calc">🧮 إعادة احتساب</button><button id="pr_close">✖ إغلاق</button></div>
  <div class="phd">احتساب قسط الوثيقة — <span id="pr_info"></span></div>
  <div class="card"><div class="scroll"><table id="pr_top"><thead><tr><th>الوصف</th><th>مبلغ التأمين</th><th>القسط المستحق</th><th>اختيار</th><th>احسب</th></tr></thead><tbody><tr><td id="pr_d"></td><td id="pr_s"></td><td id="pr_due"></td><td style="text-align:center;color:var(--ok)">✔</td><td><button class="btn sm" id="pr_go">🧮 احسب</button></td></tr></tbody></table></div></div>
  <div class="card"><h2>التغطيات</h2><div class="scroll"><table id="pr_grid"></table></div></div>

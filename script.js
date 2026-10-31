@@ -51,8 +51,8 @@ const closeM=()=>$("menu").querySelectorAll(".mi").forEach(x=>x.classList.remove
 document.addEventListener("click",closeM);
 $("ttl").onclick=$("logo").onclick=()=>{if(me)show("home")};
 function show(k){
- const sr=k=="sgen"||k=="scar",ins=k=="gen"||k=="car";
- $("p-home").hidden=k!="home";$("p-search").hidden=!sr;$("p-ins").hidden=!ins;$("p-rep").hidden=k!="rep";$("p-usr").hidden=k!="usr";$("p-clm").hidden=k!="clm";$("p-crep").hidden=k!="crep";$("p-ri").hidden=k!="ri";$("p-prem").hidden=true;
+ edit=null;const sr=k=="sgen"||k=="scar",ins=k=="gen"||k=="car";
+ $("p-home").hidden=k!="home";$("p-search").hidden=!sr;$("p-ins").hidden=!ins;$("p-rep").hidden=k!="rep";$("p-usr").hidden=k!="usr";$("p-clm").hidden=k!="clm";$("p-crep").hidden=k!="crep";$("p-ri").hidden=k!="ri";$("p-terms").hidden=true;$("p-prem").hidden=true;
  if(sr){cur=k.slice(1);searchUI()}
  if(ins){cur=k;build()}
  if(k=="rep")report();if(k=="usr")renderUsers();if(k=="clm")clmUI();if(k=="ri")riUI();if(k=="crep")crep();
@@ -96,22 +96,22 @@ $("gen").onclick=()=>{
  if(miss.length){$("err").textContent="من فضلك أكمل الحقول: "+miss.join("، ");return}
  if(!(+v("sum")>0)||!(+v("months")>0)){$("err").textContent="تأكد من إدخال مبلغ ومدة صحيحين";return}
  $("err").textContent="";
- const f=vals();pend={f,imgs:[...imgs],m:+f.months};premUI();
+ const f=vals();pend={f,imgs:[...imgs],m:+f.months};termsUI();
 };
 $("reset").onclick=build;
 function renderDoc(r){
  const f=r.f,k=r.cur,title=k=="car"?"وثيقة تأمين سيارة":"وثيقة تأمين عام — "+f.kind;
  const rows=F[k].filter(([id])=>!["name","nid","phone","addr","sum","start","months"].includes(id)).map(([id,l])=>`<tr><th>${l}</th><td colspan="3">${esc(f[id])||"—"}</td></tr>`).join("");
  const terms=k=="car"?["تسري الوثيقة على السيارة الموضحة بياناتها خلال مدة التأمين المحددة.","يلتزم المؤمَّن له بإبلاغ الشركة بأي حادث خلال 48 ساعة.","نوع التأمين «"+esc(f.use)+"»"+(f.cover!="—"?" بمستوى تغطية «"+esc(f.cover)+"»":"")+" وفق الشروط العامة والاستثناءات المرفقة.","لا تسري الوثيقة إذا استُخدمت السيارة في غير الغرض المبيَّن بها.","يحق للشركة إلغاء الوثيقة عند ثبوت تقديم بيانات غير صحيحة."]:["تغطي الوثيقة الأخطار المؤمَّن ضدها فقط خلال مدة التأمين.","يلتزم المؤمَّن له باتخاذ الاحتياطات المعقولة لمنع وقوع الخسارة.","يجب إخطار الشركة فور وقوع أي حادث أو خسارة.","يُحدد التعويض على أساس القيمة الفعلية بما لا يتجاوز مبلغ التأمين.","يحق للشركة إلغاء الوثيقة عند ثبوت تقديم بيانات غير صحيحة."];
- const c=r.c;$("doc").hidden=false;$("docbtns").hidden=false;
- $("doc").innerHTML=`<h3>${title}</h3><div class="sub">رقم الوثيقة: ${r.no} &nbsp;|&nbsp; تاريخ الإصدار: ${r.date} &nbsp;|&nbsp; المُصدِر: ${esc(r.by)}</div>
+ const c=r.c;$("doc").hidden=false;$("docbtns").hidden=false;curDoc=r;$("doc_edit").hidden=$("doc_del").hidden=!isAdmin();$("doc_del").textContent="🗑 حذف الوثيقة";$("doc_del").dataset.s="";
+ $("doc").innerHTML=`<h3>${title}</h3><div class="sub">رقم الوثيقة: ${r.no} &nbsp;|&nbsp; تاريخ الإصدار: ${r.date} &nbsp;|&nbsp; المُصدِر: ${esc(r.by)}${r.edited?" &nbsp;|&nbsp; آخر تعديل: "+r.edited+" ("+esc(r.editedBy)+")":""}</div>
  <table><tr><th>المؤمَّن له</th><td>${esc(f.name)}</td><th>الرقم القومي/السجل</th><td>${esc(f.nid)}</td></tr>
  <tr><th>الهاتف</th><td>${esc(f.phone)}</td><th>العنوان</th><td>${esc(f.addr)}</td></tr>${rows}
  <tr><th>${k=="car"?"قيمة السيارة":"مبلغ التأمين"}</th><td>${fmt(f.sum)}</td><th>مدة التأمين</th><td>${esc(f.months)} شهر</td></tr>
  <tr><th>من تاريخ</th><td>${esc(f.start)}</td><th>إلى تاريخ</th><td>${r.end}</td></tr></table>
  ${premHtml(r)}
  ${r.imgs&&r.imgs.length?`<h4>المرفقات</h4><div class="thumbs">${r.imgs.map(s=>`<img src="${s}" alt="مرفق">`).join("")}</div>`:""}
- <h4>الشروط العامة</h4><ol>${terms.map(t=>`<li>${t}</li>`).join("")}</ol>
+ ${termsHtml(r,terms)}
  <div class="sig"><div><span>توقيع المؤمَّن له</span></div><div><span>توقيع وختم الشركة</span></div></div>`;
  $("doc").scrollIntoView({behavior:"smooth"});
 }
@@ -132,11 +132,13 @@ function runSearch(){
  const l=docs.filter(d=>d.cur==cur&&(isAdmin()||d.byU==me.u)).filter(d=>
   (!q.no||has(d.no,q.no))&&["name","nid","phone","plate","chassis","motor"].every(k=>!q[k]||has(d.f[k],q[k]))&&
   (!q.kind||d.f.kind==q.kind)&&(!q.use||d.f.use==q.use)&&(!q.st||st(d)==q.st)&&(!q.df||d.date>=q.df)&&(!q.dt||d.date<=q.dt)&&(!q.by||has(d.by,q.by)));
- $("shead").innerHTML="<tr><th>رقم البوليصة</th><th>العميل</th><th>نوع التأمين</th><th>"+(car?"رقم اللوحة":"الشيء المؤمَّن")+"</th><th>المدة (شهر)</th><th>تاريخ النفاذ</th><th>الوضع</th><th>الإجمالي</th><th>المُصدِر</th><th>عرض</th><th>نسخ</th></tr>";
- $("srows").innerHTML=l.length?l.map(d=>`<tr><td>${esc(d.no)}</td><td>${esc(d.f.name)}</td><td>${esc(car?d.f.use:d.f.kind)}</td><td>${esc(car?d.f.plate:d.f.item)}</td><td>${esc(d.f.months)}</td><td>${esc(d.end)}</td><td>${st(d)}</td><td>${fmt(d.c.tot)}</td><td>${esc(d.by)}</td><td><button class="btn sm alt" data-v="${esc(d.no)}">عرض</button></td><td><button class="btn sm alt" data-c="${esc(d.no)}">نسخ</button></td></tr>`).join(""):'<tr><td colspan="11">لا توجد وثائق مطابقة</td></tr>';
+ $("shead").innerHTML="<tr><th>رقم البوليصة</th><th>العميل</th><th>نوع التأمين</th><th>"+(car?"رقم اللوحة":"الشيء المؤمَّن")+"</th><th>المدة (شهر)</th><th>تاريخ النفاذ</th><th>الوضع</th><th>الإجمالي</th><th>المُصدِر</th><th>عرض</th><th>نسخ</th>"+(isAdmin()?"<th>إدارة</th>":"")+"</tr>";
+ $("srows").innerHTML=l.length?l.map(d=>`<tr><td>${esc(d.no)}</td><td>${esc(d.f.name)}</td><td>${esc(car?d.f.use:d.f.kind)}</td><td>${esc(car?d.f.plate:d.f.item)}</td><td>${esc(d.f.months)}</td><td>${esc(d.end)}</td><td>${st(d)}</td><td>${fmt(d.c.tot)}</td><td>${esc(d.by)}</td><td><button class="btn sm alt" data-v="${esc(d.no)}">عرض</button></td><td><button class="btn sm alt" data-c="${esc(d.no)}">نسخ</button></td>${isAdmin()?`<td><button class="btn sm alt" data-e="${esc(d.no)}">تعديل</button> <button class="btn sm red" data-del="${esc(d.no)}">حذف</button></td>`:""}</tr>`).join(""):'<tr><td colspan="11">لا توجد وثائق مطابقة</td></tr>';
  $("scount").textContent="عدد الوثائق: "+l.length;
  $("srows").querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>{const r=docs.find(d=>d.no==b.dataset.v);show(r.cur);renderDoc(r)});
  $("srows").querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>copyDoc(b.dataset.c));
+ $("srows").querySelectorAll("[data-e]").forEach(b=>b.onclick=()=>editDoc(b.dataset.e));
+ $("srows").querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>delDoc(b.dataset.del,b,runSearch));
 }
 function copyDoc(no){
  const r=docs.find(d=>d.no==no);show(r.cur);
@@ -173,6 +175,74 @@ $("uadd").onclick=async()=>{
  if(users.some(x=>x.u==u)){$("uerr").textContent="اسم المستخدم موجود بالفعل";return}
  users.push({n,u,h:await sha(p),role,perm:[...$("uperm").querySelectorAll("input:checked")].map(x=>x.dataset.p)});sv("ins_users",users);["un","uu","up"].forEach(i=>$(i).value="");$("uerr").innerHTML='<span class="ok">تمت إضافة المستخدم</span>';renderUsers();
 };
+let edit=null,curDoc=null;
+function editDoc(no){
+ if(!isAdmin())return;
+ const r=docs.find(d=>d.no==no);if(!r)return;
+ show(r.cur);
+ F[cur].forEach(([id])=>{const e=$("f_"+id);if(e&&r.f[id]!=null&&r.f[id]!=="—")e.value=r.f[id]});
+ imgs=[...(r.imgs||[])];thumbs();calc();
+ edit={no:r.no,orig:r};
+ $("err").innerHTML='<span class="ok">وضع تعديل الوثيقة '+esc(r.no)+' — عدّل البيانات ثم تابع حتى حفظ التعديلات</span>';
+}
+function delDoc(no,b,after){
+ if(!isAdmin())return;
+ const n=claims.filter(c=>c.pno==no).length;
+ if(n){b.textContent="لا يمكن الحذف: للوثيقة "+n+" مطالبة";b.dataset.s="";return}
+ if(!b.dataset.s){b.dataset.s=1;b.textContent="تأكيد الحذف؟";return}
+ docs=docs.filter(d=>d.no!=no);sv("ins_docs",docs);after();
+}
+$("doc_edit").onclick=()=>editDoc(curDoc.no);
+$("doc_del").onclick=()=>delDoc(curDoc.no,$("doc_del"),()=>show("s"+curDoc.cur));
+/* ---------- terms ---------- */
+const KEEP=" تبقى باقي الشروط والاشتراطات الواردة بالوثيقة كما هي دون أي تعديل أو تغيير.";
+const CAR_X=[
+"خدمة مساعدة الطريق (شركة الصقر المصري): تشمل الوثيقة تغطية خدمة مساعدة الطريق من شركة الصقر المصري، وهي كالآتي: المساعدات الضرورية التي يحتاجها العميل، وذلك بتقديم الخدمات التالية: (نقل السيارة في حالة الحادث بحد أقصى 300 كم - نقل السيارة في حالة العطل بحد أقصى 50 كم - إعادة السيارة للطريق المعتاد - توصيل الوقود اللازم (بمقابل مادي) - الشحن الإضافي للبطارية - خدمة تبديل الإطارات). برجاء التواصل على الأرقام الآتية: (0223103494 - 0223103495 - 01010606666).",
+"شرط الترخيص (للسيارات الزيرو - غير المرخصة): من المعلوم والمتفق عليه صراحة أنه إذا تبين أن تاريخ ترخيص السيارة المؤمن عليها بموجب هذه الوثيقة قبل تاريخ بدء التأمين، فلا يحق للمشترك المطالبة بأية تعويضات قد تستحق عن هذه السيارة، والشركة غير مسئولة عن أي تلفيات تكون موجودة بالسيارة قبل تاريخ بدء سريان التأمين."+KEEP,
+"شرط الصلاحية: من المعلوم والمتفق عليه صراحة أنه لا يجوز إجراء أي تعديل أو إلغاء في هذه الوثيقة إلا بعد الحصول على موافقة كتابية من المستفيد، وتدفع التعويضات الكلية والجزئية المستحقة إلى المستفيد."+KEEP,
+"شرط محضر الشرطة بدون حد أقصى: من المعلوم والمتفق عليه صراحة أنه لا يشترط تقديم محضر شرطة إلا للحالات الآتية: حوادث الهلاك الكلي - حوادث السرقة سواء كانت جزئية أو كلية - حوادث الحريق سواء كانت جزئية أو كلية - الرجوع على الغير - المسئولية المدنية تجاه الطرف الثالث."+KEEP,
+"شرط النسبية: من المعلوم والمتفق عليه صراحة أنه إذا ما ثبت أن القيمة السوقية للأشياء المؤمن عليها بمقتضى هذه الوثيقة وقت وقوع الحادث تزيد عن المبلغ المؤمن به عليها، اعتبر المشترك بمثابة مؤمن لنفسه بالفرق، وبناءً على ذلك فلا تدفع الشركة من هذه الخسائر إلا بقدر النسبة بين المبلغ المؤمن به وبين قيمة الأشياء السوقية وقت وقوع الحادث، وإذا تضمنت الوثيقة عدة بنود فإن كل بند منها يخضع على حدة لهذا الشرط."+KEEP,
+"شرط السداد: لا تعتبر هذه الوثيقة سارية إلا إذا تم سداد الاشتراك المستحق عنها والمبين بمطالبة السداد المرفقة.",
+"المعاينة قبل الإصلاح: يجب على المشترك في حالة وقوع حادث للسيارة المؤمن عليها عدم البدء في الإصلاح إلا بعد معاينة السيارة بمعرفة الشركة.",
+"تقييم السيارة: من المعلوم والمتفق عليه أنه يقع على عاتق المشترك تقييم سعر السيارة بمعرفته طبقًا للقيمة السوقية للسيارة وقت طلب الإصدار، مع المراجعة الدورية لقيمة السيارة خلال مدة التأمين تفاديًا لتطبيق شرط النسبية في حالة وقوع حادث.",
+"يعتبر باطلًا كل تعديل أو إضافة ما لم يوقع رسميًا عليها من قبل الشركة، وتعتبر الشروط العامة المرفقة وأية ملاحق أخرى إن وجدت جزءًا لا يتجزأ من هذه الوثيقة."];
+const CAR_P=[
+"شرط الأجزاء غير المثبتة: من المعلوم والمتفق عليه صراحة أن أجزاء السيارة غير المثبتة بها، والتي يمكن للمشترك حملها أثناء مغادرته للسيارة، غير مغطاة تأمينيًا."+KEEP,
+"شرط التجديد: من المعلوم والمتفق عليه أنه في حالة وقوع حادث خلال الفترة من تاريخ تحرير التجديد وتاريخ بداية سريان التجديد، والذي يخص فترة التأمين السابقة، سيتم تعديل شروط وأسعار التأمين وفقًا لنسبة الخسارة المحققة."+KEEP,
+"شرط الوسائد الهوائية (إيرباج): من المعلوم والمتفق عليه صراحة أنه في حالة وقوع حادث للسيارة المؤمن عليها يؤدي إلى تلف الإيرباج ومشتملاتها، يتحمل المشترك نسبة 25% من قيمة الإيرباج ومشتملاتها في حالة الخسارة الجزئية فقط، ولا يطبق هذا التحمل في حالة الهلاك الكلي للسيارة."+KEEP,
+"شرط زجاج فتحة السقف / الزجاج البانوراما: من المعلوم والمتفق عليه صراحة أنه في حالة وقوع حادث للسيارة المؤمن عليها يؤدي إلى تلف / كسر / نقر زجاج فتحة السقف / الزجاج البانوراما ومشتملاتها في حالة الخسارة الكلية والجزئية، يتحمل المؤمن له نسبة 25% من قيمة زجاج فتحة السقف / الزجاج البانوراما."+KEEP];
+function defTerms(c,f){
+ const base=c=="car"?["تسري الوثيقة على السيارة الموضحة بياناتها خلال مدة التأمين المحددة.","يلتزم المؤمَّن له بإبلاغ الشركة بأي حادث خلال 48 ساعة.","نوع التأمين «"+f.use+"»"+(f.cover&&f.cover!="—"?" بمستوى تغطية «"+f.cover+"»":"")+" وفق الشروط العامة والاستثناءات المرفقة.","لا تسري الوثيقة إذا استُخدمت السيارة في غير الغرض المبيَّن بها.","يحق للشركة إلغاء الوثيقة عند ثبوت تقديم بيانات غير صحيحة."]:["تغطي الوثيقة الأخطار المؤمَّن ضدها فقط خلال مدة التأمين.","يلتزم المؤمَّن له باتخاذ الاحتياطات المعقولة لمنع وقوع الخسارة.","يجب إخطار الشركة فور وقوع أي حادث أو خسارة.","يُحدد التعويض على أساس القيمة الفعلية بما لا يتجاوز مبلغ التأمين.","يحق للشركة إلغاء الوثيقة عند ثبوت تقديم بيانات غير صحيحة."];
+ return base.concat(c=="car"&&f.use!="إجباري"?CAR_X.concat(f.use=="خاص"?CAR_P:[]):[],["تسري الوثيقة داخل جمهورية مصر العربية ما لم يُنص على غير ذلك."]);
+}
+function tmCnt(){const r=[...$("tm_list").querySelectorAll(".trow")];$("tm_cnt").textContent=" — المحدد "+r.filter(x=>x.querySelector("[data-c]").checked).length+" من "+r.length}
+const tmSet=v=>{$("tm_list").querySelectorAll(".trow").forEach(r=>{r.querySelector("[data-c]").checked=v;r.classList.toggle("off",!v)});tmCnt()};
+const termRow=(t,on=true)=>`<div class="trow${on?"":" off"}"><input type="checkbox" data-c title="تضمين الشرط في الوثيقة"${on?" checked":""}><input data-t value="${esc(t)}"><button class="btn sm red" type="button" data-x>حذف</button></div>`;
+function termsUI(){
+ const f=pend.f;
+ $("tm_info").textContent=f.name+" — "+(cur=="car"?f.use+" — "+f.plate:f.kind);
+ const T=edit&&edit.orig.tm;
+ {const D=defTerms(cur,f);$("tm_list").innerHTML=T?T.list.map(x=>termRow(x,true)).join("")+D.filter(x=>!T.list.includes(x)).map(x=>termRow(x,false)).join(""):D.map(x=>termRow(x,true)).join("")}
+ $("tm_ded").value=T?T.ded||"":"";$("tm_sp").value=T?T.sp||"":"";$("tm_ex").value=T?T.ex||"":"";
+ tmCnt();$("p-ins").hidden=true;$("p-terms").hidden=false;window.scrollTo(0,0);
+}
+$("tm_list").onclick=e=>{const b=e.target.closest("[data-x]");if(b){b.parentNode.remove();tmCnt()}};
+$("tm_list").onchange=e=>{if(e.target.matches("[data-c]"))e.target.closest(".trow").classList.toggle("off",!e.target.checked);tmCnt()};
+$("tm_add").onclick=()=>{$("tm_list").insertAdjacentHTML("beforeend",termRow(""));tmCnt();$("tm_list").lastElementChild.querySelector("[data-t]").focus()};
+$("tm_reset").onclick=()=>{$("tm_list").innerHTML=defTerms(cur,pend.f).map(x=>termRow(x)).join("");tmCnt()};
+$("tm_all").onclick=()=>tmSet(true);$("tm_none").onclick=()=>tmSet(false);
+$("tm_back").onclick=()=>{$("p-terms").hidden=true;$("p-ins").hidden=false;window.scrollTo(0,0)};
+$("tm_close").onclick=()=>show("s"+cur);
+$("tm_next").onclick=()=>{
+ pend.tm={list:[...$("tm_list").querySelectorAll(".trow")].filter(r=>r.querySelector("[data-c]").checked).map(r=>r.querySelector("[data-t]").value.trim()).filter(Boolean),ded:$("tm_ded").value.trim(),sp:$("tm_sp").value.trim(),ex:$("tm_ex").value.trim()};
+ premUI();
+};
+function termsHtml(r,legacy){
+ const t=r.tm,L=a=>`<ol>${a.map(x=>`<li>${x}</li>`).join("")}</ol>`;
+ if(!t)return`<h4>الشروط العامة</h4>${L(legacy)}`;
+ const P=(h,x)=>x?`<h4>${h}</h4><p style="font-size:.85rem;margin:0;white-space:pre-line">${esc(x)}</p>`:"";
+ return`<h4>الشروط العامة</h4>${L(t.list.map(esc))}${P("التحمل",t.ded)}${P("الشروط الخاصة",t.sp)}${P("الاستثناءات",t.ex)}`;
+}
 /* ---------- premium calculation ---------- */
 const FEES=[["اشتراك ضمان حملة الوثائق",.2],["رسوم الإشراف والرقابة",.6],["رسوم صندوق تكريم الشهداء",0,5],["ضريبة الدمغة النوعية",0,14.5],["مقابل اعتماد ومراجعة",.1],["نصف الدمغة النسبية",5.5]],ISSUE=25;
 const GCOV={
@@ -214,14 +284,14 @@ function premCompute(st,m,mc,mv){
  return{rows:out,annual:out.reduce((a,r)=>a+r.annual,0),P,D,L,net,tax:T,due,comm:CB+CC,commB:CB,commC:CC,fees,feesSub,admin,total:due+feesSub+admin};
 }
 function premUI(){
- const f=pend.f,car=cur=="car";pend.rows=premRows(f,cur);
+ const f=pend.f,car=cur=="car",o=edit&&edit.orig,same=!!(o&&o.pm&&o.pm.rows&&o.pm.rows[0]&&o.pm.rows[0].d!==undefined&&["sum","months","use","kind","cover","year"].every(k=>String(o.f[k]??"")==String(f[k]??"")));pend.rows=same?o.pm.rows.map(r=>({...r})):premRows(f,cur);
  $("pr_info").textContent=f.name+" — "+(car?f.use+" — "+f.plate:f.kind)+" | من "+f.start+" إلى "+addMonths(f.start,pend.m);
  $("pr_d").textContent=car?(f.brand+" "+f.model+" — "+f.chassis):f.item;$("pr_s").textContent=fmt(f.sum);
  const H=["","التغطية","مبلغ التأمين","النسبة %","يدوي","القسط السنوي","خصم %","تحميل %","ضريبة %","عمولة %","يدوي","العمولة","القسط المستحق للمدة"];
  const I=(k,v)=>`<input type="number" data-f="${k}" value="${v}" step="any" min="0">`,C=(k,v)=>`<input type="checkbox" data-f="${k}"${v?" checked":""}>`;
- $("pr_grid").innerHTML="<tr>"+H.map(h=>`<th>${h}</th>`).join("")+"</tr>"+pend.rows.map((r,i)=>`<tr data-i="${i}"><td>${C("on",r.on)}</td><td>${esc(r.n)}</td><td>${I("sum",r.sum)}</td><td>${I("rate",r.rate)}</td><td>${C("man",r.man)}</td><td>${I("ann",r.ann)}</td><td>${I("d",r.d)}</td><td>${I("l",r.l)}</td><td>${I("t",r.t)}</td><td>${I("cp",r.cp)}</td><td>${C("cman",false)}</td><td>${I("cm",0)}</td><td class="dc">0.00</td></tr>`).join("");
- $("pr_mc").checked=false;$("pr_mv").value="";$("pr_err").textContent="";
- $("p-ins").hidden=true;$("p-prem").hidden=false;premCalc();window.scrollTo(0,0);
+ $("pr_grid").innerHTML="<tr>"+H.map(h=>`<th>${h}</th>`).join("")+"</tr>"+pend.rows.map((r,i)=>`<tr data-i="${i}"><td>${C("on",r.on)}</td><td>${esc(r.n)}</td><td>${I("sum",r.sum)}</td><td>${I("rate",r.rate)}</td><td>${C("man",r.man)}</td><td>${I("ann",r.ann)}</td><td>${I("d",r.d)}</td><td>${I("l",r.l)}</td><td>${I("t",r.t)}</td><td>${I("cp",r.cp)}</td><td>${C("cman",r.cman)}</td><td>${I("cm",r.cm||0)}</td><td class="dc">0.00</td></tr>`).join("");
+ $("pr_mc").checked=!!(same&&o.pm.mc);$("pr_mv").value=same&&o.pm.mc?o.pm.mv:"";$("pr_err").textContent="";
+ $("p-ins").hidden=true;$("p-terms").hidden=true;$("p-prem").hidden=false;premCalc();window.scrollTo(0,0);
 }
 function premCalc(){
  const mc=$("pr_mc").checked;$("pr_mv").disabled=!mc;
@@ -248,15 +318,15 @@ function premCalc(){
 }
 $("pr_grid").addEventListener("input",premCalc);$("pr_grid").addEventListener("change",premCalc);
 $("pr_mc").onchange=$("pr_mv").oninput=$("pr_go").onclick=$("pr_calc").onclick=premCalc;
-$("pr_back").onclick=()=>{$("p-prem").hidden=true;$("p-ins").hidden=false;window.scrollTo(0,0)};
+$("pr_back").onclick=()=>{$("p-prem").hidden=true;$("p-terms").hidden=false;window.scrollTo(0,0)};
 $("pr_close").onclick=()=>show("s"+cur);
 $("pr_issue").onclick=()=>{
  const s=premCalc(),e=$("pr_err");
  if(!s.rows.some(r=>r.on)){e.textContent="اختر تغطية واحدة على الأقل";return}
  if(!(s.due>0)){e.textContent="القسط المستحق يجب أن يكون أكبر من صفر";return}
- const f=pend.f,no=(cur=="car"?"MOT-":"GEN-")+new Date().getFullYear()+"-"+String(docs.length+1).padStart(5,"0");
- const r={no,cur,f,c:{tot:s.total,prem:s.due,stamp:0,sup:0,fee:s.admin},pm:{rows:s.rows.map(x=>({n:x.n,on:x.on,sum:x.sum,rate:x.rate,annual:x.annual,net:x.net})),due:s.due,fees:s.fees,admin:s.admin,total:s.total},imgs:pend.imgs,end:addMonths(f.start,+f.months),date:today(),by:me.n,byU:me.u};
- docs.unshift(r);
+ const f=pend.f,pre=cur=="car"?"MOT-":"GEN-",y=new Date().getFullYear(),mx=Math.max(0,...docs.filter(d=>d.no.startsWith(pre+y)).map(d=>+d.no.split("-")[2]||0)),no=edit?edit.no:pre+y+"-"+String(mx+1).padStart(5,"0");
+ const r={no,cur,f,c:{tot:s.total,prem:s.due,stamp:0,sup:0,fee:s.admin},pm:{rows:s.rows.map(x=>({n:x.n,on:x.on,sum:x.sum,rate:x.rate,annual:x.annual,net:x.net,man:x.man,ann:x.ann,d:x.d,l:x.l,t:x.t,cp:x.cp,cman:x.cman,cm:x.cm,basic:x.basic})),mc:$("pr_mc").checked,mv:+$("pr_mv").value||0,due:s.due,fees:s.fees,admin:s.admin,total:s.total},tm:pend.tm,imgs:pend.imgs,end:addMonths(f.start,+f.months),date:today(),by:me.n,byU:me.u};
+ if(edit){const o=edit.orig;Object.assign(r,{date:o.date,by:o.by,byU:o.byU,edited:today(),editedBy:me.n});docs[docs.findIndex(d=>d.no==edit.no)]=r}else docs.unshift(r);
  if(!sv("ins_docs",docs.slice(0,60))){sv("ins_docs",docs.map(d=>({...d,imgs:[]})).slice(0,60))}
  show(cur);renderDoc(r);
 };
