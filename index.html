@@ -25,12 +25,19 @@
 <section id="p-home"><div id="home"><div class="wm">GIS</div><p id="hnote"></p></div></section>
 
 <section id="p-ins">
- <div class="card np"><h2 id="ftitle"></h2><div class="grid" id="form"></div>
-  <div style="margin-top:12px"><label>رفع الصور (الهوية، رخصة السيارة، صور المعاينة…)</label><input type="file" id="img" accept="image/*" multiple><div class="thumbs" id="thumbs"></div></div>
+ <div class="np" id="entry">
+  <div class="tb"><button id="gen">◂ التالي: الشروط</button><button id="reset">↺ مسح البيانات</button><button id="back">↩ رجوع لقائمة الوثائق</button></div>
+  <div class="panel"><div class="phd2">تفاصيل الوثيقة — <span id="ftitle"></span></div><div class="grid4" id="hd"></div></div>
+  <div class="split">
+   <aside class="steps"><div class="stp on">📄 تفاصيل الوثيقة والبند</div><div class="stp">⚖ الشروط</div><div class="stp">💰 الأقساط والعمولة</div><div class="stp">✔ الإصدار</div></aside>
+   <div class="cream"><div class="grid3" id="form"></div>
+    <div style="margin-top:12px"><label>رفع الصور (الهوية، رخصة السيارة، صور المعاينة…)</label><input type="file" id="img" accept="image/*" multiple><div class="thumbs" id="thumbs"></div></div>
+   </div>
+  </div>
   <div class="err" id="err"></div>
-  <div class="btns"><button class="btn" id="gen">التالي: احتساب القسط ◂</button><button class="btn alt" id="reset">مسح البيانات</button><button class="btn alt" id="back">رجوع لقائمة الوثائق</button></div></div>
+ </div>
  <div id="doc" hidden></div>
- <div class="btns np" id="docbtns" hidden style="margin-bottom:14px"><button class="btn" onclick="window.print()">طباعة / حفظ PDF</button><button class="btn alt" id="doc_edit" hidden>✎ تعديل الوثيقة</button><button class="btn red" id="doc_del" hidden>🗑 حذف الوثيقة</button></div>
+ <div class="btns np" id="docbtns" hidden style="margin-bottom:14px"><button class="btn" onclick="window.print()">طباعة / حفظ PDF</button><span id="prn_st" style="color:var(--mut);font-size:.85rem;align-self:center"></span><button class="btn alt" id="doc_edit" hidden>✎ تعديل الوثيقة</button><button class="btn alt" id="doc_rm" hidden>إزالة علامة COPY</button><button class="btn red" id="doc_del" hidden>🗑 حذف الوثيقة</button></div>
  
 </section>
 

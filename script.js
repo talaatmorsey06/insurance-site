@@ -69,11 +69,17 @@ const common=[["name","اسم المؤمَّن له","text"],["nid","الرقم 
 const F={
 gen:[...common,["kind","نوع التأمين","select",Object.keys(GEN)],["item","وصف الشيء المؤمَّن عليه","text"],["place","موقع الخطر","text"],["sum","مبلغ التأمين (ج.م)","number"],["start","بداية التأمين","date"],["months","المدة (شهر)","number"],["bene","المستفيد (اختياري)","text"]],
 car:[...common,["plate","رقم اللوحة","text"],["brand","الماركة","select",BRANDS],["model","الموديل","text"],["year","سنة الصنع","number"],["chassis","رقم الشاسيه","text"],["motor","رقم الموتور","text"],["color","اللون","text"],["use","نوع التأمين","select",Object.keys(KINDS)],["cover","مستوى التغطية (للخاص والتجاري)","select",Object.keys(COVER)],["sum","قيمة السيارة (ج.م)","number"],["start","بداية التأمين","date"],["months","المدة (شهر)","number"]]};
+F.car.push(["fuel","الوقود","select",["","بنزين","سولار","غاز طبيعي","كهرباء","هجين"]],["cyl","عدد السلندرات","number"],["body","شكل الهيكل","select",["","سيدان","هاتشباك","ستيشن","SUV","كروس أوفر","كوبيه","كشف","بيك أب","ميكروباص","أخرى"]],["cond","جديدة / مستعملة","select",["","جديدة","مستعملة"]],["cc","السعة اللترية (cc)","number"],["pax","عدد الركاب","number"],["prev","شركة التأمين السابقة","text"],["gov","المحافظة","select",["","القاهرة","الجيزة","الإسكندرية","القليوبية","الشرقية","الدقهلية","الغربية","المنوفية","البحيرة","كفر الشيخ","دمياط","بورسعيد","الإسماعيلية","السويس","شمال سيناء","جنوب سيناء","الفيوم","بني سويف","المنيا","أسيوط","سوهاج","قنا","الأقصر","أسوان","البحر الأحمر","الوادي الجديد","مطروح"]],["dedt","نوع التحمل","select",["","بدون تحمل","عن كل حادث (مبلغ)","نسبة من الخسارة"]],["dedp","نسبة التحمل %","number"],["dedv","قيمة التحمل (ج.م)","number"]);
+const OPT=["fuel","cyl","body","cond","cc","pax","prev","gov","dedt","dedp","dedv","bene"];
+const REQ={gen:["name","nid","phone","addr","kind","item","place","sum","start","months"],car:["name","nid","phone","addr","use","brand","model","year","plate","chassis","motor","color","sum","start","months"]};
+const LAY={hd:["months","name","nid","phone","addr","start"],body:{gen:["kind","item","place","sum","bene"],car:["use","cover","brand","model","year","plate","chassis","motor","color","fuel","cyl","body","cond","cc","pax","prev","gov","dedt","dedp","dedv","sum"]}};
+const dedText=f=>{if(!f.dedt||f.dedt=="بدون تحمل")return"";return f.dedt+(+f.dedp?" — "+f.dedp+"% من قيمة الخسارة":"")+(+f.dedv?" — "+f.dedv+" ج.م":"")};
 const T={gen:"بيانات وثيقة التأمينات العامة",car:"بيانات وثيقة تأمين السيارة"};
 const v=id=>$("f_"+id).value.trim();
 function build(){
  $("ftitle").textContent=T[cur];
  $("form").innerHTML=F[cur].map(([id,l,t,o])=>`<div><label for="f_${id}">${l}</label>`+(t=="select"?`<select id="f_${id}">${o.map(x=>`<option>${x}</option>`).join("")}</select>`:`<input id="f_${id}" type="${t}"${t=="number"?' min="0"':''}>`)+`</div>`).join("");
+ layoutForm();
  if(cur=="car")[...$("f_use").options].forEach(o=>{if(!can("car:"+o.value))o.remove()});$("f_start").value=today();$("f_months").value=12;if(cur=="car")$("f_year").value=new Date().getFullYear();
  if(cur=="car"){$("f_brand").insertAdjacentHTML("afterbegin",'<option value="">— اختر الماركة —</option>');$("f_brand").value="";$("form").insertAdjacentHTML("beforeend",'<datalist id="mdl"></datalist>');$("f_model").setAttribute("list","mdl");$("f_model").placeholder="اكتب أو اختر الموديل";lastB=null}$("form").oninput=calc;calc();$("err").textContent="";imgs=[];thumbs();$("img").value="";$("doc").hidden=true;$("docbtns").hidden=true;
 }
@@ -83,30 +89,52 @@ function compute(r){
  else{p=r.use=="إجباري"?600:sum*COVER[r.cover]*KINDS[r.use];if(+r.year&&+r.year<2015)p*=1.1;p*=m/12}
  const stamp=p*.01,sup=p*.005,fee=p>0?25:0;return{prem:p,stamp,sup,fee,tot:p+stamp+sup+fee};
 }
-const vals=()=>{const o=Object.fromEntries(F[cur].map(([id])=>[id,v(id)]));if(cur=="car"&&o.use=="إجباري")o.cover="—";return o};
+const vals=()=>{const o=Object.fromEntries(F[cur].map(([id])=>[id,v(id)]));if(cur=="car"&&o.use=="إجباري")o.cover="—";if(!isAdmin()){o.nid="";o.phone=""}return o};
 function calc(){
  if(cur=="car"){$("f_cover").disabled=$("f_use").value=="إجباري";const b=$("f_brand").value;if(b!==lastB){lastB=b;$("mdl").innerHTML=(MODELS[b]||"").split("،").filter(Boolean).map(m=>`<option value="${m}">`).join("")}}
+ hdUpd();
 }
 function packImg(f){return new Promise(res=>{const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,700/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=im.width*k;c.height=im.height*k;c.getContext("2d").drawImage(im,0,0,c.width,c.height);res(c.toDataURL("image/jpeg",.6))};im.onerror=()=>res(null);im.src=fr.result};fr.onerror=()=>res(null);fr.readAsDataURL(f)})}
 $("img").onchange=async e=>{for(const f of e.target.files){const d=await packImg(f);if(d&&imgs.length<6)imgs.push(d)}e.target.value="";thumbs()};
 function thumbs(){$("thumbs").innerHTML=imgs.map((s,i)=>`<div><img src="${s}" alt=""><button data-i="${i}" title="حذف">×</button></div>`).join("");$("thumbs").querySelectorAll("button").forEach(b=>b.onclick=()=>{imgs.splice(+b.dataset.i,1);thumbs()})}
 const addMonths=(d,m)=>{const x=new Date(d);x.setMonth(x.getMonth()+m);return x.toISOString().slice(0,10)};
 $("gen").onclick=()=>{
- const miss=F[cur].filter(([id])=>id!="bene"&&!v(id)).map(x=>x[1]);
+ const miss=F[cur].filter(([id])=>REQ[cur].includes(id)&&!(!isAdmin()&&(id=="nid"||id=="phone"))&&!v(id)).map(x=>x[1]);
  if(miss.length){$("err").textContent="من فضلك أكمل الحقول: "+miss.join("، ");return}
  if(!(+v("sum")>0)||!(+v("months")>0)){$("err").textContent="تأكد من إدخال مبلغ ومدة صحيحين";return}
  $("err").textContent="";
  const f=vals();pend={f,imgs:[...imgs],m:+f.months};termsUI();
 };
 $("reset").onclick=build;
+function layoutForm(){
+ const w=id=>$("f_"+id).parentNode,hd=$("hd"),fm=$("form");
+ hd.innerHTML="";
+ LAY.hd.forEach(id=>hd.appendChild(w(id)));
+ hd.insertAdjacentHTML("beforeend",'<div><label>تاريخ النهاية</label><input id="h_end" readonly></div><div><label>العملة</label><input value="جنيه مصري" readonly></div><div><label>العملية</label><input id="h_op" readonly></div><div><label>المنتج</label><input id="h_prod" readonly></div><div><label>حالة الوثيقة</label><input value="قيد الإصدار" readonly></div><div><label>رقم الوثيقة</label><input value="يُولَّد تلقائيًا عند الإصدار" readonly></div>');
+ LAY.body[cur].forEach(id=>fm.appendChild(w(id)));
+ const mi=$("f_months");w("months").querySelector("label").textContent="الدورة";
+ mi.insertAdjacentHTML("beforebegin",'<select id="f_cyc"><option value="12">سنوي</option><option value="6">نصف سنوي</option><option value="3">ربع سنوي</option><option value="1">شهري</option><option value="0">مدة أخرى (بالأشهر)</option></select>');
+ mi.hidden=true;
+ $("f_cyc").onchange=()=>{const x=+$("f_cyc").value;if(x){mi.value=x;mi.hidden=true}else{mi.hidden=false;mi.focus()}hdUpd()};
+ REQ[cur].forEach(id=>{const e=$("f_"+id);if(e)e.classList.add("req")});if(!isAdmin())["nid","phone"].forEach(id=>{w(id).hidden=true;$("f_"+id).classList.remove("req")});$("f_cyc").classList.add("req");
+}
+function cycSync(){const m=+$("f_months").value||0,o=[12,6,3,1].includes(m);$("f_cyc").value=o?String(m):"0";$("f_months").hidden=o}
+function hdUpd(){
+ if(!$("h_end"))return;
+ const m=+$("f_months").value||0,s=$("f_start").value;
+ $("h_end").value=s&&m>0?addMonths(s,m):"";
+ $("h_op").value="إصدار جديد — "+(cur=="car"?"سيارات":"تأمينات عامة");
+ $("h_prod").value=cur=="car"?"تأمين سيارات — "+($("f_use").value||"")+($("f_use").value=="إجباري"?"":" — "+$("f_cover").value):"تأمينات عامة — "+($("f_kind").value||"");
+}
+$("hd").addEventListener("input",hdUpd);$("hd").addEventListener("change",hdUpd);
 function renderDoc(r){
  const f=r.f,k=r.cur,title=k=="car"?"وثيقة تأمين سيارة":"وثيقة تأمين عام — "+f.kind;
- const rows=F[k].filter(([id])=>!["name","nid","phone","addr","sum","start","months"].includes(id)).map(([id,l])=>`<tr><th>${l}</th><td colspan="3">${esc(f[id])||"—"}</td></tr>`).join("");
+ const rows=F[k].filter(([id])=>!["name","nid","phone","addr","sum","start","months"].includes(id)&&!(OPT.includes(id)&&!f[id])).map(([id,l])=>`<tr><th>${l}</th><td colspan="3">${esc(f[id])||"—"}</td></tr>`).join("");
  const terms=k=="car"?["تسري الوثيقة على السيارة الموضحة بياناتها خلال مدة التأمين المحددة.","يلتزم المؤمَّن له بإبلاغ الشركة بأي حادث خلال 48 ساعة.","نوع التأمين «"+esc(f.use)+"»"+(f.cover!="—"?" بمستوى تغطية «"+esc(f.cover)+"»":"")+" وفق الشروط العامة والاستثناءات المرفقة.","لا تسري الوثيقة إذا استُخدمت السيارة في غير الغرض المبيَّن بها.","يحق للشركة إلغاء الوثيقة عند ثبوت تقديم بيانات غير صحيحة."]:["تغطي الوثيقة الأخطار المؤمَّن ضدها فقط خلال مدة التأمين.","يلتزم المؤمَّن له باتخاذ الاحتياطات المعقولة لمنع وقوع الخسارة.","يجب إخطار الشركة فور وقوع أي حادث أو خسارة.","يُحدد التعويض على أساس القيمة الفعلية بما لا يتجاوز مبلغ التأمين.","يحق للشركة إلغاء الوثيقة عند ثبوت تقديم بيانات غير صحيحة."];
- const c=r.c;$("doc").hidden=false;$("docbtns").hidden=false;curDoc=r;$("doc_edit").hidden=$("doc_del").hidden=!isAdmin();$("doc_del").textContent="🗑 حذف الوثيقة";$("doc_del").dataset.s="";
+ const c=r.c;$("doc").hidden=false;$("docbtns").hidden=false;curDoc=r;$("doc_edit").hidden=$("doc_del").hidden=!isAdmin();$("doc_del").textContent="🗑 حذف الوثيقة";$("doc_del").dataset.s="";prnSt();
  $("doc").innerHTML=`<h3>${title}</h3><div class="sub">رقم الوثيقة: ${r.no} &nbsp;|&nbsp; تاريخ الإصدار: ${r.date} &nbsp;|&nbsp; المُصدِر: ${esc(r.by)}${r.edited?" &nbsp;|&nbsp; آخر تعديل: "+r.edited+" ("+esc(r.editedBy)+")":""}</div>
- <table><tr><th>المؤمَّن له</th><td>${esc(f.name)}</td><th>الرقم القومي/السجل</th><td>${esc(f.nid)}</td></tr>
- <tr><th>الهاتف</th><td>${esc(f.phone)}</td><th>العنوان</th><td>${esc(f.addr)}</td></tr>${rows}
+ <table><tr><th>المؤمَّن له</th><td>${esc(f.name)}</td><th>الرقم القومي/السجل</th><td>${esc(f.nid)||"—"}</td></tr>
+ <tr><th>الهاتف</th><td>${esc(f.phone)||"—"}</td><th>العنوان</th><td>${esc(f.addr)}</td></tr>${rows}
  <tr><th>${k=="car"?"قيمة السيارة":"مبلغ التأمين"}</th><td>${fmt(f.sum)}</td><th>مدة التأمين</th><td>${esc(f.months)} شهر</td></tr>
  <tr><th>من تاريخ</th><td>${esc(f.start)}</td><th>إلى تاريخ</th><td>${r.end}</td></tr></table>
  ${premHtml(r)}
@@ -121,7 +149,7 @@ const SF={
  car:[["no","رقم البوليصة"],["name","اسم العميل / الشركة"],["nid","الرقم القومي / السجل"],["phone","الهاتف"],["plate","رقم لوحة السيارة"],["chassis","رقم الشاسيه"],["motor","رقم الموتور"],["use","نوع التأمين","select",["",...Object.keys(KINDS)]],["st","وضع الوثيقة","select",["","سارية","منتهية"]],["df","تاريخ الإصدار من","date"],["dt","تاريخ الإصدار إلى","date"]]};
 function searchUI(){
  $("sh").textContent="ادخل معيار البحث لوثيقة "+(cur=="car"?"تأمين السيارات":"التأمينات العامة");
- const fs=[...SF[cur]];if(isAdmin())fs.push(["by","المُصدِر (الموظف)"]);
+ const fs=SF[cur].filter(x=>isAdmin()||(x[0]!="nid"&&x[0]!="phone"));if(isAdmin())fs.push(["by","المُصدِر (الموظف)"]);
  $("sform").innerHTML=fs.map(([id,l,t,o])=>`<div><label>${l}</label>`+(t=="select"?`<select data-s="${id}">${o.map(x=>`<option value="${x}">${x||"الرجاء الاختيار"}</option>`).join("")}</select>`:`<input data-s="${id}" type="${t||"text"}">`)+`</div>`).join("");
  $("sform").onkeydown=e=>{if(e.key=="Enter")runSearch()};
  runSearch();
@@ -181,7 +209,7 @@ function editDoc(no){
  const r=docs.find(d=>d.no==no);if(!r)return;
  show(r.cur);
  F[cur].forEach(([id])=>{const e=$("f_"+id);if(e&&r.f[id]!=null&&r.f[id]!=="—")e.value=r.f[id]});
- imgs=[...(r.imgs||[])];thumbs();calc();
+ imgs=[...(r.imgs||[])];thumbs();cycSync();calc();
  edit={no:r.no,orig:r};
  $("err").innerHTML='<span class="ok">وضع تعديل الوثيقة '+esc(r.no)+' — عدّل البيانات ثم تابع حتى حفظ التعديلات</span>';
 }
@@ -193,6 +221,27 @@ function delDoc(no,b,after){
  docs=docs.filter(d=>d.no!=no);sv("ins_docs",docs);after();
 }
 $("doc_edit").onclick=()=>editDoc(curDoc.no);
+/* ---------- copy mark on re-print ---------- */
+function prnSt(){
+ const n=(curDoc&&curDoc.printed)||0,b=$("doc_rm");
+ b.dataset.s="";b.textContent="إزالة علامة COPY";b.hidden=!(isAdmin()&&n>0);
+ $("prn_st").textContent=n?"طُبعت "+n+" مرة — الطباعة التالية بعلامة COPY":"لم تُطبع بعد — أول طباعة تُعتبر الأصل";
+}
+const docShown=()=>curDoc&&!$("p-ins").hidden&&!$("doc").hidden;
+window.addEventListener("beforeprint",()=>{if(docShown())$("doc").classList.toggle("iscopy",(curDoc.printed||0)>0)});
+window.addEventListener("afterprint",()=>{
+ if(!docShown())return;
+ $("doc").classList.remove("iscopy");
+ curDoc.printed=(curDoc.printed||0)+1;curDoc.lastPrint=today();
+ sv("ins_docs",docs);prnSt();
+});
+$("doc_rm").onclick=()=>{
+ if(!isAdmin()||!curDoc)return;
+ const b=$("doc_rm");
+ if(!b.dataset.s){b.dataset.s=1;b.textContent="تأكيد إزالة العلامة؟";return}
+ curDoc.printed=0;curDoc.copyRemoved=today();curDoc.copyRemovedBy=me.n;
+ sv("ins_docs",docs);prnSt();
+};
 $("doc_del").onclick=()=>delDoc(curDoc.no,$("doc_del"),()=>show("s"+curDoc.cur));
 /* ---------- terms ---------- */
 const KEEP=" تبقى باقي الشروط والاشتراطات الواردة بالوثيقة كما هي دون أي تعديل أو تغيير.";
@@ -223,7 +272,7 @@ function termsUI(){
  $("tm_info").textContent=f.name+" — "+(cur=="car"?f.use+" — "+f.plate:f.kind);
  const T=edit&&edit.orig.tm;
  {const D=defTerms(cur,f);$("tm_list").innerHTML=T?T.list.map(x=>termRow(x,true)).join("")+D.filter(x=>!T.list.includes(x)).map(x=>termRow(x,false)).join(""):D.map(x=>termRow(x,true)).join("")}
- $("tm_ded").value=T?T.ded||"":"";$("tm_sp").value=T?T.sp||"":"";$("tm_ex").value=T?T.ex||"":"";
+ $("tm_ded").value=T?T.ded||"":dedText(f);$("tm_sp").value=T?T.sp||"":"";$("tm_ex").value=T?T.ex||"":"";
  tmCnt();$("p-ins").hidden=true;$("p-terms").hidden=false;window.scrollTo(0,0);
 }
 $("tm_list").onclick=e=>{const b=e.target.closest("[data-x]");if(b){b.parentNode.remove();tmCnt()}};
@@ -326,7 +375,7 @@ $("pr_issue").onclick=()=>{
  if(!(s.due>0)){e.textContent="القسط المستحق يجب أن يكون أكبر من صفر";return}
  const f=pend.f,pre=cur=="car"?"MOT-":"GEN-",y=new Date().getFullYear(),mx=Math.max(0,...docs.filter(d=>d.no.startsWith(pre+y)).map(d=>+d.no.split("-")[2]||0)),no=edit?edit.no:pre+y+"-"+String(mx+1).padStart(5,"0");
  const r={no,cur,f,c:{tot:s.total,prem:s.due,stamp:0,sup:0,fee:s.admin},pm:{rows:s.rows.map(x=>({n:x.n,on:x.on,sum:x.sum,rate:x.rate,annual:x.annual,net:x.net,man:x.man,ann:x.ann,d:x.d,l:x.l,t:x.t,cp:x.cp,cman:x.cman,cm:x.cm,basic:x.basic})),mc:$("pr_mc").checked,mv:+$("pr_mv").value||0,due:s.due,fees:s.fees,admin:s.admin,total:s.total},tm:pend.tm,imgs:pend.imgs,end:addMonths(f.start,+f.months),date:today(),by:me.n,byU:me.u};
- if(edit){const o=edit.orig;Object.assign(r,{date:o.date,by:o.by,byU:o.byU,edited:today(),editedBy:me.n});docs[docs.findIndex(d=>d.no==edit.no)]=r}else docs.unshift(r);
+ if(edit){const o=edit.orig;Object.assign(r,{date:o.date,by:o.by,byU:o.byU,edited:today(),editedBy:me.n,printed:o.printed,lastPrint:o.lastPrint});docs[docs.findIndex(d=>d.no==edit.no)]=r}else docs.unshift(r);
  if(!sv("ins_docs",docs.slice(0,60))){sv("ins_docs",docs.map(d=>({...d,imgs:[]})).slice(0,60))}
  show(cur);renderDoc(r);
 };
