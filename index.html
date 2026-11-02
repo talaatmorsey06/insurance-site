@@ -37,15 +37,16 @@
   <div class="err" id="err"></div>
  </div>
  <div id="doc" hidden></div>
- <div class="btns np" id="docbtns" hidden style="margin-bottom:14px"><button class="btn" onclick="window.print()">طباعة / حفظ PDF</button><span id="prn_st" style="color:var(--mut);font-size:.85rem;align-self:center"></span><button class="btn alt" id="doc_edit" hidden>✎ تعديل الوثيقة</button><button class="btn alt" id="doc_rm" hidden>إزالة علامة COPY</button><button class="btn red" id="doc_del" hidden>🗑 حذف الوثيقة</button></div>
+ <div class="btns np" id="docbtns" hidden style="margin-bottom:14px"><button class="btn" id="open_print">🖨️ نافذة طباعة الوثيقة</button><span id="prn_st" style="color:var(--mut);font-size:.85rem;align-self:center"></span><button class="btn alt" id="doc_edit" hidden>✎ تعديل الوثيقة</button><button class="btn alt" id="doc_end">＋ إصدار ملحق</button><button class="btn alt" id="doc_rm" hidden>إزالة علامة COPY</button><button class="btn red" id="doc_del" hidden>🗑 حذف الوثيقة</button></div>
  
 </section>
 
 <section id="p-search" hidden class="np">
+ <div class="tb"><button class="sel" id="st_docs">📄 الوثائق</button><button id="st_end">📎 الملاحق</button></div>
  <div class="card" style="border-color:#c9b458"><h2 id="sh" style="text-decoration:underline"></h2>
   <div class="grid" id="sform"></div>
   <div class="btns"><button class="btn" id="sgo">بحث</button><button class="btn alt" id="sclr">إلغاء</button></div></div>
- <div class="card"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><b>اختر وثيقة تأمين</b><button class="btn" id="snew">＋ إضافة جديدة</button></div>
+ <div class="card"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><b>اختر وثيقة تأمين</b><span style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="snew">＋ إضافة جديدة</button><button class="btn alt" id="snewe">＋ إضافة ملحق</button></span></div>
   <div class="scroll" style="margin-top:10px"><table id="stbl"><thead id="shead"></thead><tbody id="srows"></tbody></table></div><div id="scount" style="color:var(--mut);font-size:.85rem;margin-top:6px"></div></div>
 </section>
 
@@ -112,6 +113,55 @@
  <div class="card"><h2>اتفاقيات إعادة التأمين</h2><div class="scroll"><table><thead><tr><th>رقم الاتفاقية</th><th>الاسم</th><th>النوع</th><th>معيد التأمين</th><th>القسم</th><th>الفترة</th><th>الإسناد %</th><th>حد الاحتفاظ</th><th>الحد الأقصى</th><th>العمولة %</th><th>الحالة</th><th></th></tr></thead><tbody id="ri_rows"></tbody></table></div></div>
 </section>
 
+<section id="p-end" hidden>
+ <div class="np">
+  <div class="tb" id="e_tabs"><button data-go="docs">📄 الوثائق</button><button data-t="chg">✎ تغييرات عامة</button><button data-t="add">＋ إضافة</button><button data-t="ext">📅 تمديد الفترة التأمينية</button><button data-t="cls">⛔ إلغاء بالتصفية</button></div>
+  <div id="e_form" hidden>
+   <div class="card"><h2 id="e_h"></h2>
+    <div class="grid">
+     <div><label>رقم الوثيقة</label><input id="e_p" list="e_pl" autocomplete="off" placeholder="اكتب أو اختر رقم الوثيقة"><datalist id="e_pl"></datalist></div>
+     <div><label>اسم العميل</label><input id="e_cl" readonly></div>
+     <div><label>بيانات الوثيقة</label><input id="e_pi" readonly></div>
+     <div><label>تاريخ سريان الملحق</label><input id="e_d" type="date"></div>
+    </div>
+    <div id="e_chg" class="grid" style="margin-top:12px">
+     <div><label>البيان المراد تغييره</label><select id="e_fld"></select></div>
+     <div><label>القيمة الحالية</label><input id="e_old" readonly></div>
+     <div><label>القيمة الجديدة</label><input id="e_new"></div>
+     <div style="display:flex;align-items:end"><label style="display:flex;gap:6px;align-items:center;color:var(--tx);margin:0"><input type="checkbox" id="e_upd" checked style="width:auto"> تحديث بيانات الوثيقة تلقائيًا</label></div>
+    </div>
+    <div id="e_add" class="grid" style="margin-top:12px">
+     <div><label>نوع الإضافة</label><select id="e_at"><option>زيادة مبلغ التأمين</option><option>إضافة تغطية</option></select></div>
+     <div id="e_acw" hidden><label>التغطية المضافة</label><input id="e_ac" list="e_acl"><datalist id="e_acl"></datalist></div>
+     <div><label>المبلغ المضاف (ج.م)</label><input id="e_av" type="number" min="0"></div>
+     <div><label>النسبة %</label><input id="e_ar" type="number" min="0" step="any"></div>
+     <div><label>القسط الإضافي (ج.م)</label><input id="e_ap" type="number" min="0" step="any" readonly></div>
+     <div style="display:flex;align-items:end"><label style="display:flex;gap:6px;align-items:center;color:var(--tx);margin:0"><input type="checkbox" id="e_am" style="width:auto"> قسط يدوي</label></div>
+    </div>
+    <div id="e_ext" class="grid" style="margin-top:12px" hidden>
+     <div><label>تاريخ بداية فترة التمديد</label><input id="e_ext_from" type="date"></div>
+     <div><label>تاريخ نهاية فترة التمديد الجديدة</label><input id="e_ext_to" type="date"></div>
+     <div><label>تاريخ انتهاء الوثيقة الحالي</label><input id="e_ext_old" readonly></div>
+     <div><label>تاريخ انتهاء الوثيقة بعد التمديد</label><input id="e_ext_new" readonly></div>
+    </div>
+    <div id="e_cls" class="grid" style="margin-top:12px">
+     <div><label>سبب الإغلاق</label><select id="e_cr"><option>طلب العميل</option><option>عدم السداد</option><option>بيع السيارة / زوال الخطر</option><option>هلاك كلي</option><option>أخرى</option></select></div>
+     <div><label>القسط المسدد (ج.م)</label><input id="e_pb" readonly></div>
+     <div><label>نسبة خصم المصاريف %</label><input id="e_dd" type="number" min="0" max="100" step="any" value="0"></div>
+     <div><label>القسط المسترد (ج.م)</label><input id="e_rf" readonly></div>
+    </div>
+    <div style="margin-top:12px"><label>ملاحظات (اختياري)</label><input id="e_n"></div>
+    <div id="e_fin" class="calc"></div>
+    <div class="err" id="e_err"></div>
+    <div class="btns"><button class="btn" id="e_save">💾 حفظ وإصدار الملحق</button><button class="btn alt" id="e_clr">مسح البيانات</button></div>
+   </div>
+  </div>
+  <div class="card"><h2>سجل الملاحق</h2><div class="scroll"><table><thead><tr><th>رقم الملحق</th><th>النوع</th><th>رقم الوثيقة</th><th>العميل</th><th>تاريخ السريان</th><th>الأثر المالي</th><th>المُصدِر</th><th></th></tr></thead><tbody id="e_rows"></tbody></table></div></div>
+ </div>
+ <div id="edoc" hidden></div>
+ <div class="btns np" id="edbtns" hidden style="margin-bottom:14px"><button class="btn" onclick="window.print()">طباعة / حفظ PDF</button></div>
+</section>
+
 <section id="p-rep" hidden>
  <div class="card np"><h2>التقارير</h2>
   <div class="grid"><div><label>من تاريخ</label><input type="date" id="rf"></div><div><label>إلى تاريخ</label><input type="date" id="rt"></div></div>
@@ -119,6 +169,13 @@
  <div class="card" id="rout"></div>
 </section>
 
+<section id="p-producers" hidden class="np">
+ <div class="card"><h2>إدارة المنتجين وأكواد الهيئة</h2>
+  <div class="grid"><div><label>اسم المنتج</label><input id="producerName" placeholder="اسم المنتج"></div><div><label>كود الهيئة</label><input id="producerCode" placeholder="كود الهيئة"></div></div>
+  <div class="err" id="producerErr"></div><div class="btns"><button class="btn" id="producerSave">إضافة المنتج</button><button class="btn alt" id="producerReset">مسح الحقول</button></div>
+ </div>
+ <div class="card"><h2>المنتجون المسجلون</h2><div class="scroll"><table><thead><tr><th>اسم المنتج</th><th>كود الهيئة</th><th>الإجراءات</th></tr></thead><tbody id="producerRows"></tbody></table></div></div>
+</section>
 <section id="p-usr" hidden class="np">
  <div class="card" id="mgr" hidden style="border-color:#e6c200"><h2>تحديد مدير النظام</h2><p style="color:var(--mut);font-size:.9rem;margin-top:0">لم يُحدَّد مدير بعد. أنشئ حساب المدير الآن؛ بعد ذلك سيُطلب تسجيل الدخول من الجميع، وسيتحكم المدير في الحسابات والصلاحيات.</p><div class="grid"><div><label>الاسم الكامل</label><input id="mn"></div><div><label>اسم المستخدم</label><input id="mu" autocomplete="off" value="admin"></div><div><label>كلمة المرور</label><input id="mp" type="password" autocomplete="new-password"></div></div><div class="err" id="merr"></div><div class="btns"><button class="btn" id="madd">تحديد المدير</button></div></div>
  <div class="card" id="ucard"><h2>إضافة مستخدم جديد</h2>
@@ -128,7 +185,56 @@
  <div class="card" id="utbl"><h2>المستخدمون (إعادة تعيين كلمة المرور للمدير فقط)</h2><div class="scroll"><table><thead><tr><th>الاسم</th><th>المستخدم</th><th>الصفة</th><th>الأنواع المسموحة</th><th>كلمة مرور جديدة</th><th></th></tr></thead><tbody id="urows"></tbody></table></div></div>
 </section>
 </main>
+<div id="wiz" class="modal" hidden><div class="mbox">
+ <div class="mhd"><span>مساعد البوليصة</span><button class="mx" id="w_x" title="إغلاق">✕</button></div>
+ <div class="mbody"><div class="mpanel"><u class="mtl">تفاصيل الوثيقة</u>
+  <div class="wrow"><label>العملية</label><select id="w_op"></select></div>
+  <div class="wrow"><label>اسم</label><div class="wmulti"><input id="w_cc" readonly value="0" style="max-width:110px"><input id="w_cn" autocomplete="off" placeholder="اسم العميل"><button class="dots" id="w_cb" type="button" title="اختيار عميل سابق">…</button></div><div class="wpick" id="w_pick" hidden></div></div>
+  <div class="wrow2"><div><label>تاريخ البداية</label><input id="w_s" type="date"></div><div><label>تاريخ النهاية</label><input id="w_e" type="date"></div></div>
+  <div class="wrow"><label>تاريخ الإصدار</label><input id="w_i" type="date" readonly style="max-width:200px"></div>
+  <div class="wrow"><label>منتج</label><select id="w_pr"></select></div>
+  <div class="wrow"><label>الحالة الإنتاجية</label><div class="wmulti"><select id="w_ps" style="max-width:160px"><option>مباشر</option><option>وسيط</option><option>وكيل</option><option>بنك</option></select><input id="w_pn" list="producerList" placeholder="اسم الوسيط / الوكيل (اختياري)"><datalist id="producerList"></datalist><input id="w_producer_code" readonly placeholder="كود الهيئة" style="max-width:120px"></div></div>
+  <div class="wrow"><label>عملة البوليصة</label><select id="w_cu"><option value="">الرجاء الاختيار</option><option value="جنيه مصري">جنيه مصري</option></select></div>
+  <div class="wrow"><label>اسم المؤمَّن عليه</label><div class="wmulti"><input id="w_in" readonly placeholder="نفس العميل"><button class="dots" id="w_ib" type="button" title="تحديد مؤمَّن عليه مختلف">…</button></div></div>
+  <div class="err" id="w_err"></div>
+ </div></div>
+ <div class="mft"><button class="btn" id="w_ok">حفظ</button><button class="btn alt" id="w_no">إلغاء</button></div>
+</div></div>
 </div>
+
+
+<div id="printModal" class="modal np" hidden>
+ <div class="mbox print-box">
+  <div class="mhd"><span>نافذة طباعة الوثيقة</span><button class="mx" id="print_x" title="إغلاق">✕</button></div>
+  <div class="print-layout">
+   <section class="print-options">
+    <h3>تفاصيل التقرير</h3>
+    <div id="printTypes" class="print-types">
+     <button type="button" class="print-type selected" data-type="original">A. جدول الوثيقة - عربي - ORIGINAL</button>
+     <button type="button" class="print-type" data-type="endorsement">C. رسالة الملحق - عربي</button>
+     <button type="button" class="print-type" data-type="debit">E. إشعار الدائن / المدين للمشترك أو المنتج</button>
+     <button type="button" class="print-type" data-type="closing">G. فك كلوزنج سليب</button>
+     <button type="button" class="print-type" data-type="optional">H. إشعار دائن / مدين للاختياري</button>
+     <button type="button" class="print-type" data-type="distribution">Policy Distribution Report</button>
+    </div>
+    <div class="print-fields">
+     <h3>مدخلات</h3>
+     <label for="printName">اسم التقرير</label><input id="printName" readonly value="A. جدول الوثيقة - عربي - ORIGINAL">
+     <label for="printNo">رقم الوثيقة</label>
+     <div class="print-number"><input id="printNo" list="printDocList" autocomplete="off"><datalist id="printDocList"></datalist><button type="button" class="btn alt" id="printFind" title="اختيار الوثيقة">⌕</button></div>
+     <label for="printFormat">فئة التصدير</label><select id="printFormat"><option value="pdf">PDF</option></select>
+    </div>
+    <div class="btns">
+     <button type="button" class="btn" id="printPreview">معاينة قبل الطباعة</button>
+     <button type="button" class="btn alt" id="printCancel">إلغاء</button>
+     <button type="button" class="btn" id="printExport">تصدير PDF</button>
+    </div>
+   </section>
+   <section class="print-preview-wrap"><h3>معاينة الوثيقة</h3><div id="printPreviewArea" class="print-preview">اختر نوع التقرير ثم اضغط «معاينة قبل الطباعة».</div></section>
+  </div>
+ </div>
+</div>
+<div id="printArea" hidden></div>
 
 <script src="script.js"></script>
 </body>
