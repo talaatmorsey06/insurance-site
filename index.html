@@ -387,7 +387,7 @@ let mem={};const sv=(k,v)=>{mem[k]=v;try{localStorage.setItem(k,JSON.stringify(v
 async function sha(s){try{const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode("ins:"+s));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("")}catch(e){let h=0;for(const c of "ins:"+s)h=(h*31+c.charCodeAt(0))|0;return"f"+h}}
 let users=ld("ins_users",[]),docs=ld("ins_docs",[]),me=null,cur="gen",imgs=[],mode=users.length?"login":"setup";
 const isAdmin=()=>me&&(me.role=="مدير"||me.u=="admin");
-const PERMS=[["gen","التأمينات العامة"],["car:إجباري","سيارات — إجباري"],["car:خاص","سيارات — خاص"],["car:تجاري","سيارات — تجاري"],["clm","إنشاء تعويض"],["prod","إضافة وتكويد المنتجين"],["cust","إضافة العملاء"]];
+const PERMS=[["gen","التأمينات العامة"],["car:إجباري","سيارات — إجباري"],["car:خاص","سيارات — خاص"],["car:تجاري","سيارات — تجاري"],["clm","إنشاء تعويض"],["rep","عرض التقارير"],["prod","إضافة وتكويد المنتجين"],["cust","إضافة العملاء"]];
 const can=k=>isAdmin()||(me.perm||PERMS.map(p=>p[0])).includes(k);
 const permBoxes=s=>PERMS.map(([k,l])=>`<label><input type="checkbox" data-p="${k}"${s.includes(k)?" checked":""}> ${l}</label>`).join("");
 
@@ -421,7 +421,7 @@ function enter(){
  if(hasCar){dep.push("تأمين السيارات");ins.push(["scar","وثائق تأمين السيارات"])}
  $("dep").textContent=dep.join(" + ")||"—";
  $("hnote").textContent=ins.length?"اختر من القائمة العلوية: وثيقة ← نوع الوثيقة المراد إصدارها":"لا توجد صلاحيات إصدار لحسابك، تواصل مع المدير.";
- const M=[["وثيقة",ins.concat(ins.length?[["upl","رفع المستندات"]]:[])],["الملاحق",ins.length?[["end_chg","ملحق تغييرات عامة"],["end_add","ملحق إضافة"],["end_ext","ملحق مد فترة التأمين"]].concat(isAdmin()?[["end_cls","ملحق إلغاء بالتصفية"]]:[]).concat([["end_list","سجل الملاحق"]]):[]],["التعويضات",(ins.length&&can("clm")?[["clm","إنشاء تعويض"]]:[]).concat(isAdmin()?[["crep","تقارير التعويضات"]]:[])],["الطباعة",[["prt","نموذج الطباعة"]]],["التقارير",isAdmin()?[["rep","عرض التقرير"]]:[]],["أشياء أخرى",isAdmin()?[["usr","المستخدمون والصلاحيات"],["prods","تكويد المنتجين"]]:[]],["إعادة التأمين",isAdmin()?[["ri","إضافة اتفاقية"]]:[]]];
+ const M=[["وثيقة",ins.concat(ins.length?[["upl","رفع المستندات"]]:[])],["الملاحق",ins.length?[["end_chg","ملحق تغييرات عامة"],["end_add","ملحق إضافة"],["end_ext","ملحق مد فترة التأمين"]].concat(isAdmin()?[["end_cls","ملحق إلغاء بالتصفية"]]:[]).concat([["end_list","سجل الملاحق"]]):[]],["التعويضات",(ins.length&&can("clm")?[["clm","إنشاء تعويض"]]:[]).concat(isAdmin()?[["crep","تقارير التعويضات"]]:[])],["الطباعة",[["prt","نموذج الطباعة"]]],["التقارير",(isAdmin()||can("rep"))?[["rep","عرض التقرير"]]:[]],["أشياء أخرى",isAdmin()?[["usr","المستخدمون والصلاحيات"],["prods","تكويد المنتجين"]]:[]],["إعادة التأمين",isAdmin()?[["ri","إضافة اتفاقية"]]:[]]];
  $("menu").innerHTML='<div class="mi"><button class="d" data-k="home">المنزل</button></div>'+M.filter(m=>m[1].length).map(([t,it])=>`<div class="mi"><button>${t}</button><div class="dd">${it.map(([k,l])=>`<button data-k="${k}"${k?"":" disabled"}>${l}</button>`).join("")}</div></div>`).join("");
  $("menu").querySelectorAll(".mi>button").forEach(b=>b.onclick=e=>{e.stopPropagation();if(b.dataset.k){closeM();show(b.dataset.k);return}const p=b.parentNode,o=p.classList.contains("open");closeM();if(!o)p.classList.add("open")});
  $("menu").querySelectorAll(".dd button").forEach(b=>b.onclick=()=>{closeM();show(b.dataset.k)});
@@ -558,7 +558,7 @@ $("sgo").onclick=runSearch;$("sclr").onclick=searchUI;$("snew").onclick=openWiz;
 
 /* ---------- reports (admin) ---------- */
 function report(){
- if(!isAdmin())return;
+ if(!(isAdmin()||can("rep")))return;
  const a=$("rf").value||"0000-00-00",b=$("rt").value||"9999-99-99";
  const l=docs.filter(d=>d.date>=a&&d.date<=b);
  const grp=fn=>{const m={};l.forEach(d=>{const k=fn(d);m[k]=m[k]||{n:0,t:0};m[k].n++;m[k].t+=d.c.tot});return Object.entries(m)};
