@@ -7,8 +7,8 @@ let mem={};const sv=(k,v)=>{mem[k]=v;try{localStorage.setItem(k,JSON.stringify(v
 async function sha(s){try{const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode("ins:"+s));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("")}catch(e){let h=0;for(const c of "ins:"+s)h=(h*31+c.charCodeAt(0))|0;return"f"+h}}
 let users=ld("ins_users",[]),docs=ld("ins_docs",[]),me=null,cur="gen",imgs=[],mode=users.length?"login":"setup";
 const isAdmin=()=>me&&(me.role=="مدير"||me.u=="admin");
-const PERMS=[["gen","التأمينات العامة"],["car:إجباري","سيارات — إجباري"],["car:خاص","سيارات — خاص"],["car:تجاري","سيارات — تجاري"],["clm","إنشاء تعويض"]];
-const can=k=>isAdmin()||(me.perm||PERMS.map(p=>p[0])).includes(k);
+const PERMS=[["gen","التأمينات العامة"],["car:إجباري","سيارات — إجباري"],["car:خاص","سيارات — خاص"],["car:تجاري","سيارات — تجاري"],["clm","إنشاء تعويض"],["rep","عرض التقارير"],["view","عرض بيانات جميع الوثائق"],["rmcopy","إزالة COPY من الوثيقة"],["prod","إضافة وتكويد المنتجين"],["cust","إضافة العملاء"]];
+const can=k=>isAdmin()||(k=="view")||(me&&me.role=="موظف تكويد"&&(k=="prod"||k=="cust"))||(me.perm||PERMS.map(p=>p[0])).includes(k);
 const permBoxes=s=>PERMS.map(([k,l])=>`<label><input type="checkbox" data-p="${k}"${s.includes(k)?" checked":""}> ${l}</label>`).join("");
 
 /* ---------- auth ---------- */
@@ -41,7 +41,7 @@ function enter(){
  if(hasCar){dep.push("تأمين السيارات");ins.push(["scar","وثائق تأمين السيارات"])}
  $("dep").textContent=dep.join(" + ")||"—";
  $("hnote").textContent=ins.length?"اختر من القائمة العلوية: وثيقة ← نوع الوثيقة المراد إصدارها":"لا توجد صلاحيات إصدار لحسابك، تواصل مع المدير.";
- const M=[["وثيقة",ins.concat(ins.length?[["upl","رفع المستندات"]]:[])],["الملاحق",ins.length?[["end_chg","ملحق تغييرات عامة"],["end_add","ملحق إضافة"],["end_ext","ملحق مد فترة التأمين"]].concat(isAdmin()?[["end_cls","ملحق إلغاء بالتصفية"]]:[]).concat([["end_list","سجل الملاحق"]]):[]],["التعويضات",(ins.length&&can("clm")?[["clm","إنشاء تعويض"]]:[]).concat(isAdmin()?[["crep","تقارير التعويضات"]]:[])],["الطباعة",[["prt","نموذج الطباعة"]]],["التقارير",isAdmin()?[["rep","عرض التقرير"]]:[]],["أشياء أخرى",isAdmin()?[["usr","المستخدمون والصلاحيات"],["prods","تكويد المنتجين"]]:[]],["إعادة التأمين",isAdmin()?[["ri","إضافة اتفاقية"]]:[]]];
+ const M=[["وثيقة",ins.concat(ins.length?[["upl","رفع المستندات"]]:[])],["الملاحق",ins.length?[["end_chg","ملحق تغييرات عامة"],["end_add","ملحق إضافة"],["end_ext","ملحق مد فترة التأمين"]].concat(isAdmin()?[["end_cls","ملحق إلغاء بالتصفية"]]:[]).concat([["end_list","سجل الملاحق"]]):[]],["التعويضات",(ins.length&&can("clm")?[["clm","إنشاء تعويض"]]:[]).concat(isAdmin()?[["crep","تقارير التعويضات"]]:[])],["الطباعة",(isAdmin()||me.role!="موظف تكويد")?[["prt","نموذج الطباعة"]]:[]],["التقارير",(isAdmin()||can("rep"))?[["rep","عرض التقرير"]]:[]],["أشياء أخرى",(isAdmin()?( [["usr","المستخدمون والصلاحيات"],["prods","تكويد المنتجين"],["custs","تكويد العملاء"]] ):(can("prod")?[["prods","تكويد المنتجين"],["custs","تكويد العملاء"]]:[]))],["إعادة التأمين",isAdmin()?[["ri","إضافة اتفاقية"]]:[]]];
  $("menu").innerHTML='<div class="mi"><button class="d" data-k="home">المنزل</button></div>'+M.filter(m=>m[1].length).map(([t,it])=>`<div class="mi"><button>${t}</button><div class="dd">${it.map(([k,l])=>`<button data-k="${k}"${k?"":" disabled"}>${l}</button>`).join("")}</div></div>`).join("");
  $("menu").querySelectorAll(".mi>button").forEach(b=>b.onclick=e=>{e.stopPropagation();if(b.dataset.k){closeM();show(b.dataset.k);return}const p=b.parentNode,o=p.classList.contains("open");closeM();if(!o)p.classList.add("open")});
  $("menu").querySelectorAll(".dd button").forEach(b=>b.onclick=()=>{closeM();show(b.dataset.k)});
@@ -51,7 +51,7 @@ const closeM=()=>$("menu").querySelectorAll(".mi").forEach(x=>x.classList.remove
 document.addEventListener("click",closeM);
 $("ttl").onclick=$("logo").onclick=()=>{if(me)show("home")};
 function show(k){
- if(k=="prods"){openProd();return}edit=null;const sr=k=="sgen"||k=="scar",ins=k=="gen"||k=="car";
+ if(k=="prods"){openProd();return}if(k=="custs"){openCust();return}edit=null;const sr=k=="sgen"||k=="scar",ins=k=="gen"||k=="car";
  $("p-home").hidden=k!="home";$("p-search").hidden=!sr;$("p-ins").hidden=!ins;$("p-rep").hidden=k!="rep";$("p-usr").hidden=k!="usr";$("p-clm").hidden=k!="clm";$("p-crep").hidden=k!="crep";$("p-ri").hidden=k!="ri";$("p-end").hidden=!k.startsWith("end_");$("p-prt").hidden=k!="prt";$("p-upl").hidden=k!="upl";$("p-terms").hidden=true;$("p-prem").hidden=true;
  if(sr){cur=k.slice(1);searchUI()}
  if(ins){cur=k;build()}
@@ -62,17 +62,88 @@ function show(k){
 /* ---------- insurance ---------- */
 const GEN={"حريق":.0015,"سرقة":.002,"مسؤولية مدنية":.003,"نقل بضائع":.0025,"حوادث شخصية":.004,"أعمال هندسية":.0035};
 const COVER={"ضد الغير":.012,"شامل":.035},KINDS={"إجباري":1,"خاص":1,"تجاري":1.3};
-const BRANDS=["أبارث","أستون مارتن","ألفا روميو","أودي","أوبل","إنفينيتي","أم جي (MG)","أيون (GAC Aion)","إكسبنج (Xpeng)","إيسوزو","بايك (BAIC)","بنتلي","بورش","بوجاتي","بويك","بونتياك","بيجو","بي إم دبليو","بي واي دي (BYD)","بروتون","بولستار","تاتا","تويوتا","تيسلا","جاك (JAC)","جاكوار","جريت وول","جنيسيس","جيب","جيتور","جيلي (Geely)","جي إم سي","جي إيه سي (GAC)","داسيا","دايو","دايهاتسو","دودج","دونج فينج","دي إس (DS)","دي إف إس كيه (DFSK)","ديفا","رام","رينو","رولز رويس","ريفيان","زيكر (Zeekr)","ساب","سانج يونج","سمارت","سوبارو","سوزوكي","سيات","سيتروين","سيرس (Seres)","سكودا","شانجان","شيري (Chery)","شيفروليه","فاو (FAW)","فورد","فولفو","فولكس فاجن","فيات","فيراري","كاديلاك","كاوا (Kaiyi)","كرايسلر","كوبرا (Cupra)","كيا","لادا","لامبورجيني","لاند روفر","لانسيا","لكزس","لوسيد","ليبموتور (Leapmotor)","لينكولن","لينك آند كو","مازدا","مازيراتي","ماكلارين","ماهيندرا","مرسيدس بنز","ميتسوبيشي","ميني","نيسان","نيو (NIO)","هافال","هامر","هوندا","هونشي (Hongqi)","هيونداي","أخرى"];
+const BRANDS=["أبارث","أستون مارتن","ألفا روميو","أودي","أوبل","إنفينيتي","أم جي (MG)","أيون (GAC Aion)","إكسبنج (Xpeng)","إيسوزو","بايك (BAIC)","بنتلي","بورش","بوجاتي","بويك","بونتياك","بيجو","بي إم دبليو","بي واي دي (BYD)","بروتون","بولستار","تاتا","تويوتا","تيسلا","جاك (JAC)","جاكوار","جريت وول","جنيسيس","جيب","جيتور","جيلي (Geely)","جي إم سي","جي إيه سي (GAC)","داسيا","دايو","دايهاتسو","دودج","دونج فينج","دي إس (DS)","دي إف إس كيه (DFSK)","ديفا","رام","رينو","رولز رويس","ريفيان","زيكر (Zeekr)","ساب","سانج يونج","سمارت","سوبارو","سوزوكي","سيات","سيتروين","سيرس (Seres)","سكودا","شانجان","شيري (Chery)","شيفروليه","فاو (FAW)","فورد","فولفو","فولكس فاجن","فيات","فيراري","كاديلاك","كاوا (Kaiyi)","كرايسلر","كوبرا (Cupra)","كيا","لادا","لامبورجيني","لاند روفر","لانسيا","لكزس","لوسيد","ليبموتور (Leapmotor)","لينكولن","لينك آند كو","مازدا","مازيراتي","ماكلارين","ماهيندرا","مرسيدس بنز","ميتسوبيشي","ميني","نيسان","نيو (NIO)","أومودا (Omoda)","فينوشيا (Venucia)","زوتي (Zotye)","ساوايست (Soueast)","فوتون (Foton)","كينبو (Kenbo)","جاك (JAC)","سينوفا (Senova)","بستيون (Bestune)","سوايست (Soueast)","إم جي (MG)","هافال","هامر","هوندا","هونشي (Hongqi)","هيونداي","أخرى"];
 const MODELS={"تويوتا":"كورولا،يارس،كامري،راف فور،لاند كروزر،هايلكس،فورتشنر،بريفيا،كراون","هيونداي":"إلنترا،أكسنت،توسان،كريتا،سوناتا،سانتا في،i10،i20،فيرنا","كيا":"سيراتو،سبورتاج،بيكانتو،ريو،سورينتو،سيلتوس،بيجاس،كارنيفال","نيسان":"صني،سنترا،قاشقاي،جوك،إكس تريل،كيكس،باترول،ألتيما","شيفروليه":"أفيو،لانوس،أوبترا،كروز،كابتيفا،ماليبو،سبارك،كروز","مرسيدس بنز":"A200،C180،C200،E200،E300،S500،CLA،GLA،GLC،GLE","بي إم دبليو":"316،320،520،X1،X3،X5،X6","أودي":"A3،A4،A6،Q3،Q5،Q7","فولكس فاجن":"جيتا،باسات،تيجوان،بولو،جولف،تي روك","سكودا":"أوكتافيا،فابيا،سوبيرب،كودياك،كاروك،كامك","رينو":"لوجان،ميجان،داستر،كابتشر،فلوانس،سانديرو،كويد","بيجو":"301،508،2008،3008،408،5008","ميتسوبيشي":"لانسر،أوتلاندر،إكليبس كروس،باجيرو،أتراج،إل 200","سوزوكي":"سويفت،ديزاير،فيتارا،إرتيجا،بالينو،سيليريو","فيات":"تيبو،500،دوبلو،بونتو","فورد":"فوكس،فييستا،إكسبلورر،إيكو سبورت،رينجر","هوندا":"سيفيك،أكورد،CR-V،سيتي،HR-V","مازدا":"3،6،CX-3،CX-5،CX-9","أم جي (MG)":"MG5،MG6،ZS،HS،RX5،MG4،Marvel R","شيري (Chery)":"تيجو 3،تيجو 4،تيجو 7،تيجو 8،أريزو 5،أريزو 6","جيلي (Geely)":"كولراي،إمجراند،أزكارا،توجيلا،مونجارو","بي واي دي (BYD)":"F3،سونج،هان،دولفين،أتو 3،سيجل","بايك (BAIC)":"X7،X55،BJ40،U5","جيتور":"X70،X90،داش،T2","هافال":"H6،جوليان،H9،دارجو","جيب":"رانجلر،شيروكي،جراند شيروكي،كومباس،رينيجيد","لاند روفر":"ديسكفري،رينج روفر،رينج روفر سبورت،ديفندر،إيفوك","لكزس":"ES،IS،RX،NX،LX","فولفو":"XC40،XC60،XC90،S60،S90","ميني":"كوبر،كنتري مان،كلوبمان","دايهاتسو":"تيريوس،سيريون","شانجان":"CS35،CS75،CS95،ألسفين،إيدو","سيات":"ليون،إبيزا،أتيكا،أروناه","أوبل":"أسترا،كورسا،موكا،فيكترا","سيتروين":"C3،C4،C5،C-Elysee،بيرلينجو","دودج":"تشارجر،دورانجو،تشالنجر","تيسلا":"Model 3،Model Y،Model S،Model X","دونج فينج":"AX7،S30،H30 كروس","بورش":"كايين،ماكان،باناميرا،911","جي إيه سي (GAC)":"GS3،GS8،GN6،إمباو","سوبارو":"إمبريزا،فورستر،XV،ليجاسي","ايسوزو":"D-Max،MU-X","إيسوزو":"D-Max،MU-X"};
+Object.assign(MODELS,{
+"أبارث":"500،595،695،124 Spider",
+"أستون مارتن":"DB11،DB12،DBS،Vantage،Rapide،DBX",
+"ألفا روميو":"جوليا،ستيلفيو،تونالي،4C،159",
+"أوبل":"أسترا،كورسا،موكا،جراند لاند،كروس لاند،فيكترا،إنسيجنيا",
+"إنفينيتي":"Q30،Q50،QX50،QX55،QX60،QX80",
+"أيون (GAC Aion)":"Y،S،LX،V",
+"إكسبنج (Xpeng)":"P5،P7،G3،G6،G9",
+"إيسوزو":"D-Max،MU-X،N-Series،F-Series",
+"بنتلي":"كونتيننتال GT،فلاينج سبير،بنتايجا،مولسان",
+"بورش":"كايين،ماكان،باناميرا،911،718 بوكستر،تايكان",
+"بوجاتي":"شيرون،فيرون،ديفو،ميسترال",
+"بويك":"إنكور،إنفيستا،إنفيجن،إنكليف",
+"بيجو":"301،208،308،508،2008،3008،408،5008،Partner",
+"بي إم دبليو":"116،118،218،316،320،330،520،530،740،X1،X2،X3،X4،X5،X6،X7",
+"بي واي دي (BYD)":"F3،L3،سونج،هان،دولفين،أتو 3،سيجل،تانغ",
+"بروتون":"ساجا،بيرسونا،إكسورا،إرتيجا،X50،X70",
+"تاتا":"نيكسون،بنش،هارير،سفاري،إنديجو،ألتروز",
+"تيسلا":"Model 3،Model Y،Model S،Model X،Cybertruck",
+"جاك (JAC)":"S2،S3،S4،JS3،JS4،JS6،T8،J7",
+"جاكوار":"XE،XF،F-Pace،E-Pace،F-Type،I-Pace",
+"جريت وول":"وينجل،بوير،هافال H6،تانك 300،تانك 500",
+"جنيسيس":"G70،G80،G90،GV70،GV80",
+"جيب":"رانجلر،شيروكي،جراند شيروكي،كومباس،رينيجيد،جلاديتور",
+"جيتور":"X70،X70 Plus،X90،داش،T2،X50",
+"جيلي (Geely)":"كولراي،إمجراند،أزكارا،توجيلا،مونجارو،بينراي",
+"جي إم سي":"يوكون،تيرين،أكاديا،سييرا،كانيون،هامر EV",
+"جي إيه سي (GAC)":"GS3،GS4،GS5،GS8،GN6،GN8،إمباو،Aion Y",
+"داسيا":"لوجان،سانديرو،داستر،لودجي،جوجر",
+"دايو":"لانوس،نوبيرا،ماتيز،ليجانزا،كالوُس",
+"دايهاتسو":"تيريوس،سيريون،جران ماكس،ميرا،ماتيريا",
+"دودج":"تشارجر،تشالنجر،دورانجو،رام",
+"رام":"1500،2500،3500،برومستر،رام TRX",
+"رينو":"لوجان،ميجان،داستر،كابتشر،فلوانس،سانديرو،كويد،كوليوس،أركانا",
+"رولز رويس":"فانتوم،جوست،رايث،داون،كولينان،سبكتر",
+"ريفيان":"R1T،R1S",
+"زيكر (Zeekr)":"001،009،X،7X",
+"ساب":"9-3،9-5،9-4X",
+"سانج يونج":"تيفولي،كوراندو،ريكستون،موسو",
+"سمارت":"Fortwo،Forfour،#1،#3",
+"سوبارو":"إمبريزا،فورستر،XV،ليجاسي،أوتباك،BRZ",
+"سيرس (Seres)":"3،5،7،SF5",
+"فاو (FAW)":"B30،B50،X40،X80،T77",
+"فيراري":"Roma،296،488،F8،812،Purosangue",
+"كاديلاك":"CT4،CT5،XT4،XT5،XT6،Escalade،Lyriq",
+"كاوا (Kaiyi)":"E5،X3،X5،X7",
+"كرايسلر":"300،Pacifica،Voyager",
+"كوبرا (Cupra)":"Formentor،Leon،Born،Ateca",
+"لامبورجيني":"أوروس،هوراكان،أفنتادور،ريفيولتو",
+"لانسيا":"Ypsilon،Delta،Thema",
+"لوسيد":"Air،Gravity",
+"ليبموتور (Leapmotor)":"T03،C10،C11،C01",
+"لينكولن":"كورساير،ناوتيلوس،أفييتور،كونتيننتال",
+"لينك آند كو":"01،02،03،05،09",
+"مازيراتي":"جريكال،ليفانتي،جيبلي،كواتروبورتي،MC20",
+"مكلارين":"570S،720S،765LT،GT،Artura",
+"ماهيندرا":"Scorpio،XUV300،XUV700،Thar،Pik Up",
+"مرسيدس بنز":"A200،C180،C200،E200،E300،S500،CLA،GLA،GLB،GLC،GLE،GLS،G-Class",
+"ميني":"كوبر،كلوبمان،كنتري مان،Paceman",
+"نيو (NIO)":"ET5،ET7،ES6،ES7،ES8،EC6،EC7",
+"أومودا (Omoda)":"C5،C7،E5",
+"فينوشيا (Venucia)":"V-Online،Star،T60،T70،D60",
+"زوتي (Zotye)":"T600،T700،SR7،Z100",
+"ساوايست (Soueast)":"DX3،DX5،DX7،S09",
+"فوتون (Foton)":"Tunland،View،Toano،Sauvana",
+"كينبو (Kenbo)":"S3،S7،H3،H6",
+"سينوفا (Senova)":"A1،A20،D50،X25،X35",
+"بستيون (Bestune)":"T33،T55،T77،T99،B70",
+"هونشي (Hongqi)":"H5،H6،H9،HS5،HS7،E-HS9",
+"هامر":"H2،H3،EV"
+});
 let lastB=null;
-const common=[["name","اسم المؤمَّن له","text"],["nid","الرقم القومي / السجل التجاري","text"],["phone","رقم الهاتف","tel"],["addr","العنوان","text"]];
+const common=[["name","اسم المؤمَّن له","text"],["addr","العنوان","text"]];
 const F={
 gen:[...common,["kind","نوع التأمين","select",Object.keys(GEN)],["item","وصف الشيء المؤمَّن عليه","text"],["place","موقع الخطر","text"],["sum","مبلغ التأمين (ج.م)","number"],["start","بداية التأمين","date"],["months","المدة (شهر)","number"],["bene","المستفيد (اختياري)","text"]],
 car:[...common,["plate","رقم اللوحة","text"],["brand","الماركة","select",BRANDS],["model","الموديل","text"],["year","سنة الصنع","number"],["chassis","رقم الشاسيه","text"],["motor","رقم الموتور","text"],["color","اللون","text"],["use","نوع التأمين","select",Object.keys(KINDS)],["cover","مستوى التغطية (للخاص والتجاري)","select",Object.keys(COVER)],["sum","قيمة السيارة (ج.م)","number"],["start","بداية التأمين","date"],["months","المدة (شهر)","number"]]};
 F.car.push(["fuel","الوقود","select",["","بنزين","سولار","غاز طبيعي","كهرباء","هجين"]],["cyl","عدد السلندرات","number"],["body","شكل الهيكل","select",["","سيدان","هاتشباك","ستيشن","SUV","كروس أوفر","كوبيه","كشف","بيك أب","ميكروباص","أخرى"]],["cond","جديدة / مستعملة","select",["","جديدة","مستعملة"]],["cc","السعة اللترية (cc)","number"],["pax","عدد الركاب","number"],["prev","شركة التأمين السابقة","text"],["gov","المحافظة","select",["","القاهرة","الجيزة","الإسكندرية","القليوبية","الشرقية","الدقهلية","الغربية","المنوفية","البحيرة","كفر الشيخ","دمياط","بورسعيد","الإسماعيلية","السويس","شمال سيناء","جنوب سيناء","الفيوم","بني سويف","المنيا","أسيوط","سوهاج","قنا","الأقصر","أسوان","البحر الأحمر","الوادي الجديد","مطروح"]],["dedt","نوع التحمل","select",["","بدون تحمل","عن كل حادث (مبلغ)","نسبة من الخسارة"]],["dedp","نسبة التحمل %","number"],["dedv","قيمة التحمل (ج.م)","number"]);
 ["gen","car"].forEach(k=>F[k].push(["insured","اسم المؤمَّن عليه","text"],["ptype","نوع العميل","select",["","فردي","شركة"]],["prod","الحالة الإنتاجية","text"]));
 const OPT=["insured","ptype","prod","fuel","cyl","body","cond","cc","pax","prev","gov","dedt","dedp","dedv","bene"];
-const REQ={gen:["name","nid","phone","addr","kind","item","place","sum","start","months"],car:["name","nid","phone","addr","use","brand","model","year","plate","chassis","motor","color","sum","start","months"]};
+const REQ={gen:["name","addr","kind","item","place","sum","start","months"],car:["name","addr","use","brand","model","year","plate","chassis","motor","color","sum","start","months"]};
 const LAY={hd:["months","name","nid","phone","addr","start"],body:{gen:["insured","ptype","prod","kind","item","place","sum","bene"],car:["insured","ptype","prod","use","cover","brand","model","year","plate","chassis","motor","color","fuel","cyl","body","cond","cc","pax","prev","gov","dedt","dedp","dedv","sum"]}};
 const dedText=f=>{if(!f.dedt||f.dedt=="بدون تحمل")return"";return f.dedt+(+f.dedp?" — "+f.dedp+"% من قيمة الخسارة":"")+(+f.dedv?" — "+f.dedv+" ج.م":"")};
 const T={gen:"بيانات وثيقة التأمينات العامة",car:"بيانات وثيقة تأمين السيارة"};
@@ -145,8 +216,8 @@ function renderDoc(r){
 }
 function renderList(){}
 const SF={
- gen:[["no","رقم البوليصة"],["name","اسم العميل / الشركة"],["nid","الرقم القومي / السجل"],["phone","الهاتف"],["kind","نوع التأمين","select",["",...Object.keys(GEN)]],["st","وضع الوثيقة","select",["","سارية","منتهية","ملغاة"]],["df","تاريخ الإصدار من","date"],["dt","تاريخ الإصدار إلى","date"]],
- car:[["no","رقم البوليصة"],["name","اسم العميل / الشركة"],["nid","الرقم القومي / السجل"],["phone","الهاتف"],["plate","رقم لوحة السيارة"],["chassis","رقم الشاسيه"],["motor","رقم الموتور"],["use","نوع التأمين","select",["",...Object.keys(KINDS)]],["st","وضع الوثيقة","select",["","سارية","منتهية","ملغاة"]],["df","تاريخ الإصدار من","date"],["dt","تاريخ الإصدار إلى","date"]]};
+ gen:[["no","رقم البوليصة"],["name","اسم العميل / الشركة"],["kind","نوع التأمين","select",["",...Object.keys(GEN)]],["st","وضع الوثيقة","select",["","سارية","منتهية","ملغاة"]],["df","تاريخ الإصدار من","date"],["dt","تاريخ الإصدار إلى","date"]],
+ car:[["no","رقم البوليصة"],["name","اسم العميل / الشركة"],["plate","رقم لوحة السيارة"],["chassis","رقم الشاسيه"],["motor","رقم الموتور"],["use","نوع التأمين","select",["",...Object.keys(KINDS)]],["st","وضع الوثيقة","select",["","سارية","منتهية","ملغاة"]],["df","تاريخ الإصدار من","date"],["dt","تاريخ الإصدار إلى","date"]]};
 function searchUI(){
  $("sh").textContent="ادخل معيار البحث لوثيقة "+(cur=="car"?"تأمين السيارات":"التأمينات العامة");
  const fs=SF[cur].filter(x=>isAdmin()||(x[0]!="nid"&&x[0]!="phone"));if(isAdmin())fs.push(["by","المُصدِر (الموظف)"]);
@@ -157,17 +228,34 @@ function searchUI(){
 function runSearch(){
  const q={};$("sform").querySelectorAll("[data-s]").forEach(e=>q[e.dataset.s]=e.value.trim());
  const has=(a,b)=>String(a??"").toLowerCase().includes(b.toLowerCase()),st=d=>d.closed?"ملغاة":d.end>=today()?"سارية":"منتهية",car=cur=="car";
- const l=docs.filter(d=>d.cur==cur&&(isAdmin()||d.byU==me.u)).filter(d=>
+ const l=docs.filter(d=>d.cur==cur&&(isAdmin()||can("view")||d.byU==me.u)).filter(d=>
   (!q.no||has(d.no,q.no))&&["name","nid","phone","plate","chassis","motor"].every(k=>!q[k]||has(d.f[k],q[k]))&&
   (!q.kind||d.f.kind==q.kind)&&(!q.use||d.f.use==q.use)&&(!q.st||st(d)==q.st)&&(!q.df||d.date>=q.df)&&(!q.dt||d.date<=q.dt)&&(!q.by||has(d.by,q.by)));
  $("shead").innerHTML="<tr><th>رقم البوليصة</th><th>العميل</th><th>نوع التأمين</th><th>"+(car?"رقم اللوحة":"الشيء المؤمَّن")+"</th><th>المدة (شهر)</th><th>تاريخ النفاذ</th><th>الوضع</th><th>الإجمالي</th><th>المُصدِر</th><th>عرض</th><th>نسخ</th><th>ملحق</th>"+(isAdmin()?"<th>إدارة</th>":"")+"</tr>";
- $("srows").innerHTML=l.length?l.map(d=>`<tr><td>${esc(d.no)}</td><td>${esc(d.f.name)}</td><td>${esc(car?d.f.use:d.f.kind)}</td><td>${esc(car?d.f.plate:d.f.item)}</td><td>${esc(d.f.months)}</td><td>${esc(d.end)}</td><td>${st(d)}</td><td>${fmt(d.c.tot)}</td><td>${esc(d.by)}</td><td><button class="btn sm alt" data-v="${esc(d.no)}">عرض</button></td><td><button class="btn sm alt" data-c="${esc(d.no)}">نسخ</button></td><td>${d.closed?"—":`<button class="btn sm alt" data-end="${esc(d.no)}">＋ ملحق</button>`}</td>${isAdmin()?`<td><button class="btn sm alt" data-e="${esc(d.no)}">تعديل</button> <button class="btn sm red" data-del="${esc(d.no)}">حذف</button></td>`:""}</tr>`).join(""):'<tr><td colspan="13">لا توجد وثائق مطابقة</td></tr>';
+ $("srows").innerHTML=l.length?l.map(d=>`<tr><td>${esc(d.no)}</td><td>${esc(d.f.name)}</td><td>${esc(car?d.f.use:d.f.kind)}</td><td>${esc(car?d.f.plate:d.f.item)}</td><td>${esc(d.f.months)}</td><td>${esc(d.end)}</td><td>${st(d)}</td><td>${fmt(d.c.tot)}</td><td>${esc(d.by)}</td><td><button class="btn sm alt" data-v="${esc(d.no)}">عرض</button></td><td><button class="btn sm alt" data-c="${esc(d.no)}">نسخ</button></td><td>${d.closed?"—":`<button class="btn sm alt" data-end="${esc(d.no)}">＋ ملحق</button>`}</td>${isAdmin()?`<td><button class="btn sm alt" data-e="${esc(d.no)}">تعديل</button> <button class="btn sm alt" data-nonly="${esc(d.no)}">رقم فقط</button> <button class="btn sm alt" data-rmcopy="${esc(d.no)}">إزالة علامة COPY</button> <button class="btn sm red" data-del="${esc(d.no)}">حذف</button></td>`:""}</tr>`).join(""):'<tr><td colspan="13">لا توجد وثائق مطابقة</td></tr>';
  $("scount").textContent="عدد الوثائق: "+l.length;
- $("srows").querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>{const r=docs.find(d=>d.no==b.dataset.v);show(r.cur);renderDoc(r)});
+ $("srows").querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>{const r=docs.find(d=>d.no==b.dataset.v);if(!r)return;show("s"+r.cur);renderDoc(r);$("doc").scrollIntoView({behavior:"smooth"})});
  $("srows").querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>copyDoc(b.dataset.c));
  $("srows").querySelectorAll("[data-e]").forEach(b=>b.onclick=()=>editDoc(b.dataset.e));
+ $("srows").querySelectorAll("[data-nonly]").forEach(b=>b.onclick=()=>showNumberOnly(b.dataset.nonly));
  $("srows").querySelectorAll("[data-end]").forEach(b=>b.onclick=()=>openEnd(b.dataset.end));
+ $("srows").querySelectorAll("[data-rmcopy]").forEach(b=>b.onclick=()=>removeCopyFromList(b.dataset.rmcopy,b));
  $("srows").querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>delDoc(b.dataset.del,b,runSearch));
+}
+function showNumberOnly(no){
+ if(!isAdmin())return;
+ const r=docs.find(d=>d.no==no);if(!r)return;
+ show("s"+r.cur);
+ $("doc").hidden=false;$("docbtns").hidden=true;
+ $("doc").innerHTML='<h3>عرض مختصر للمدير</h3><div class="sub">رقم الوثيقة</div><div style="font-size:2rem;text-align:center;font-weight:800;color:#0f4c81;padding:32px">'+esc(r.no)+'<\/div>';
+ $("doc").scrollIntoView({behavior:"smooth"});
+}
+function removeCopyFromList(no,b){
+ if(!isAdmin()||!no)return;
+ const r=docs.find(d=>d.no==no);if(!r)return;
+ if(!(r.printed>0)){b.textContent="لا توجد علامة COPY";return}
+ if(!b.dataset.s){b.dataset.s=1;b.textContent="تأكيد الإزالة؟";return}
+ r.printed=0;r.copyRemoved=today();r.copyRemovedBy=me.n;sv("ins_docs",docs);b.textContent="تمت الإزالة";b.disabled=true;
 }
 function copyDoc(no){
  const r=docs.find(d=>d.no==no);show(r.cur);
@@ -178,7 +266,7 @@ $("sgo").onclick=runSearch;$("sclr").onclick=searchUI;$("snew").onclick=openWiz;
 
 /* ---------- reports (admin) ---------- */
 function report(){
- if(!isAdmin())return;
+ if(!(isAdmin()||can("rep")))return;
  const a=$("rf").value||"0000-00-00",b=$("rt").value||"9999-99-99";
  const l=docs.filter(d=>d.date>=a&&d.date<=b);
  const grp=fn=>{const m={};l.forEach(d=>{const k=fn(d);m[k]=m[k]||{n:0,t:0};m[k].n++;m[k].t+=d.c.tot});return Object.entries(m)};
@@ -222,10 +310,12 @@ function delDoc(no,b,after){
  docs=docs.filter(d=>d.no!=no);sv("ins_docs",docs);after();
 }
 $("doc_edit").onclick=()=>editDoc(curDoc.no);
+$("doc_copy_print").onclick=()=>{if(!curDoc)return;curDoc.printed=Math.max(1,curDoc.printed||0);sv("ins_docs",docs);prnSt();window.print();};
+$("doc_print_center").onclick=()=>{if(!curDoc)return;show("prt");prtPick("A");$("rt_p").value=curDoc.no;$("rt_p").dispatchEvent(new Event("input"));};
 /* ---------- copy mark on re-print ---------- */
 function prnSt(){
  const n=(curDoc&&curDoc.printed)||0,b=$("doc_rm");
- b.dataset.s="";b.textContent="إزالة علامة COPY";b.hidden=!(isAdmin()&&n>0);$("doc_end").hidden=!curDoc||!!curDoc.closed;
+ b.dataset.s="";b.textContent="إزالة كلمة COPY";b.hidden=!(isAdmin()||can("rmcopy"))||n<=0;$("doc_end").hidden=!curDoc||!!curDoc.closed;
  $("prn_st").textContent=n?"طُبعت "+n+" مرة — الطباعة التالية بعلامة COPY":"لم تُطبع بعد — أول طباعة تُعتبر الأصل";
 }
 const docShown=()=>curDoc&&!$("p-ins").hidden&&!$("doc").hidden;
@@ -237,7 +327,7 @@ window.addEventListener("afterprint",()=>{
  sv("ins_docs",docs);prnSt();
 });
 $("doc_rm").onclick=()=>{
- if(!isAdmin()||!curDoc)return;
+ if(!(isAdmin()||can("rmcopy"))||!curDoc)return;
  const b=$("doc_rm");
  if(!b.dataset.s){b.dataset.s=1;b.textContent="تأكيد إزالة العلامة؟";return}
  curDoc.printed=0;curDoc.copyRemoved=today();curDoc.copyRemovedBy=me.n;
@@ -389,7 +479,7 @@ function premHtml(r){
 /* ---------- claims ---------- */
 let claims=ld("ins_claims",[]),cimgs=[];
 const CST=["قيد الدراسة","معتمدة","مدفوعة","مرفوضة"],CTY=["حادث / تصادم","سرقة","حريق","أضرار للغير","إصابات جسدية","كسر زجاج","أخرى"];
-const myDocs=()=>docs.filter(d=>isAdmin()||d.byU==me.u);
+const myDocs=()=>docs.filter(d=>isAdmin()||can("view")||d.byU==me.u);
 const saveC=()=>{if(!sv("ins_claims",claims))sv("ins_claims",claims.map(x=>({...x,imgs:[]})))};
 function cth(){$("c_th").innerHTML=cimgs.map((s,i)=>`<div><img src="${s}" alt=""><button data-i="${i}" title="حذف">×</button></div>`).join("");$("c_th").querySelectorAll("button").forEach(b=>b.onclick=()=>{cimgs.splice(+b.dataset.i,1);cth()})}
 function clmUI(){
@@ -589,7 +679,7 @@ function prtBuild(){
 function prtPreview(){
  const r=prtBuild();
  if(r.err){$("rt_err").textContent=r.err;$("pdoc").hidden=true;return false}
- $("rt_err").textContent="";$("pdoc").classList.remove("iscopy");$("pdoc").innerHTML=r.h;$("pdoc").hidden=false;$("pdoc").scrollIntoView({behavior:"smooth"});return true;
+ $("rt_err").textContent="";$("pdoc").classList.remove("iscopy");$("pdoc").innerHTML='<div class="btns np" style="margin-bottom:14px"><button class="btn" onclick="window.print()">طباعة الوثيقة / حفظ PDF</button></div>'+r.h;$("pdoc").hidden=false;$("pdoc").scrollIntoView({behavior:"smooth"});return true;
 }
 $("rt_pre").onclick=prtPreview;
 $("rt_exp").onclick=()=>{if(prtPreview())window.print()};
@@ -600,6 +690,18 @@ window.addEventListener("afterprint",()=>{
  $("pdoc").classList.remove("iscopy");
  if(prtDoc){prtDoc.printed=(prtDoc.printed||0)+1;prtDoc.lastPrint=today();sv("ins_docs",docs)}
 });
+/* ---------- customer coding ---------- */
+let customers=ld("ins_customers",[]),cEdit=null;
+const nextCustomerCode=()=>"C"+String(Math.max(0,...customers.map(x=>parseInt(String(x.code).replace(/\\D/g,"")||0)))+1).padStart(5,"0");
+function cReset(){cEdit=null;$("c_c").value=nextCustomerCode();$("c_n").value="";$("c_t").value="فردي";$("c_p").value="";$("c_a").value="";$("c_err2").textContent=""}
+function cList(){
+ $("c_rows2").innerHTML=customers.length?customers.map((x,i)=>`<tr><td>${esc(x.code)}</td><td>${esc(x.name)}</td><td>${esc(x.type)}</td><td>${esc(x.phone||"—")}</td><td>${esc(x.addr||"—")}</td><td><button class="btn sm alt" data-ce="${i}">تعديل</button> <button class="btn sm red" data-cd="${i}">حذف</button></td></tr>`).join(""):"<tr><td colspan=\"6\">لا يوجد عملاء بعد</td></tr>";
+ $("c_rows2").querySelectorAll("[data-ce]").forEach(b=>b.onclick=()=>{const x=customers[+b.dataset.ce];cEdit=x.code;$("c_c").value=x.code;$("c_n").value=x.name;$("c_t").value=x.type;$("c_p").value=x.phone||"";$("c_a").value=x.addr||"";$("c_err2").textContent=""});
+ $("c_rows2").querySelectorAll("[data-cd]").forEach(b=>b.onclick=()=>{if(!b.dataset.s){b.dataset.s=1;b.textContent="تأكيد الحذف؟";return}customers.splice(+b.dataset.cd,1);sv("ins_customers",customers);cReset();cList()});
+}
+function openCust(){if(!(isAdmin()||can("prod")||can("cust")))return;cReset();cList();$("cmod").hidden=false;$("c_n").focus()}
+$("c_x").onclick=()=>$("cmod").hidden=true;$("c_new2").onclick=cReset;$("cmod").onclick=e=>{if(e.target===$("cmod"))$("cmod").hidden=true};
+$("c_save2").onclick=()=>{if(!(isAdmin()||can("prod")||can("cust")))return;const e=$("c_err2"),n=$("c_n").value.trim();if(!n){e.textContent="أدخل اسم العميل";return}if(customers.some(x=>x.name==n&&x.code!=cEdit)){e.textContent="اسم العميل مسجل مسبقًا";return}const rec={code:$("c_c").value,name:n,type:$("c_t").value,phone:$("c_p").value.trim(),addr:$("c_a").value.trim(),date:today(),by:me.n};if(cEdit){const i=customers.findIndex(x=>x.code==cEdit);customers[i]={...customers[i],...rec}}else customers.push(rec);sv("ins_customers",customers);cReset();cList();e.innerHTML='<span class="ok">تم حفظ العميل</span>'};
 /* ---------- producers coding (manager) ---------- */
 let prods=ld("ins_prod",[]),pEdit=null;
 const nextPCode=()=>String(Math.max(1000,...prods.map(x=>+x.code||0))+1);
@@ -614,12 +716,12 @@ function pList(){
   prods.splice(+b.dataset.pd,1);sv("ins_prod",prods);pReset();pList();
  });
 }
-function openProd(){if(!isAdmin())return;pReset();pList();$("pmod").hidden=false;$("p_n").focus()}
+function openProd(){if(!(isAdmin()||can("prod")))return;pReset();pList();$("pmod").hidden=false;$("p_n").focus()}
 $("p_new").onclick=pReset;$("p_x").onclick=()=>{$("pmod").hidden=true};
 $("pmod").onclick=e=>{if(e.target===$("pmod"))$("pmod").hidden=true};
 document.addEventListener("keydown",e=>{if(e.key=="Escape"&&!$("pmod").hidden)$("pmod").hidden=true});
 $("p_save").onclick=()=>{
- if(!isAdmin())return;
+ if(!(isAdmin()||can("prod")))return;
  const e=$("p_err"),n=$("p_n").value.trim(),m=+$("p_m").value||0;
  if(!n){e.textContent="أدخل اسم المنتج";return}
  if(m<0||m>100){e.textContent="نسبة العمولة من 0 إلى 100";return}
@@ -685,7 +787,7 @@ $("w_ok").onclick=()=>{
 let ends=ld("ins_end",[]),et=null;
 const ET={chg:"ملحق تغييرات عامة",add:"ملحق إضافة",ext:"ملحق مد فترة التأمين",cls:"ملحق إلغاء بالتصفية"};
 const pctFees=FEES.reduce((n,x)=>n+(x[1]||0),0);
-const FLD={all:[["name","اسم المؤمَّن له"],["nid","الرقم القومي / السجل"],["phone","الهاتف"],["addr","العنوان"]],car:[["plate","رقم اللوحة"],["chassis","رقم الشاسيه"],["motor","رقم الموتور"],["color","اللون"],["model","الموديل"],["year","سنة الصنع"]],gen:[["item","وصف الشيء المؤمَّن عليه"],["place","موقع الخطر"],["bene","المستفيد"]]};
+const FLD={all:[["name","اسم المؤمَّن له"],["addr","العنوان"]],car:[["plate","رقم اللوحة"],["chassis","رقم الشاسيه"],["motor","رقم الموتور"],["color","اللون"],["model","الموديل"],["year","سنة الصنع"]],gen:[["item","وصف الشيء المؤمَّن عليه"],["place","موقع الخطر"],["bene","المستفيد"]]};
 const eDocs=()=>myDocs().filter(d=>!d.closed);
 const eDoc=()=>eDocs().find(d=>d.no==$("e_p").value.trim());
 function endUI(t){
