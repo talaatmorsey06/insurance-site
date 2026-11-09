@@ -55,9 +55,9 @@ function audit(ev,d){try{const a=ld("ins_audit",[]);a.unshift({t:Date.now(),u:me
 const LOCK_AFTER=5,IDLE=15*60*1000;let lastAct=Date.now();
 let users=ld("ins_users",[]),docs=ld("ins_docs",[]),me=null,cur="gen",imgs=[],mode=users.length?"login":"setup";
 const isAdmin=()=>me&&(me.role=="مدير"||me.u=="admin");
-const PERMS=[["gen","التأمينات العامة"],["car:إجباري","سيارات — إجباري"],["car:خاص","سيارات — خاص"],["car:تجاري","سيارات — تجاري"],["clm","إنشاء تعويض"],["cust","تكويد العملاء"],["prod","تكويد المنتجين"],["ast","أصول الشركة"]];
-const DEFP=["gen","car:إجباري","car:خاص","car:تجاري","clm","cust"];
-const RPRESET={"موظف إصدار سيارات":["car:إجباري","car:خاص","car:تجاري","clm"],"موظف إصدار تأمينات عامة":["gen","clm"],"موظف تكويد":["cust","prod","ast"],"موظف":DEFP,"موظفة":DEFP};
+const PERMS=[["gen","التأمينات العامة"],["car:إجباري","سيارات — إجباري"],["car:خاص","سيارات — خاص"],["car:تجاري","سيارات — تجاري"],["clm","إنشاء تعويض"],["cust","تكويد العملاء"],["prod","تكويد المنتجين"],["ast","أصول الشركة"],["rep","عرض التقارير"]];
+const DEFP=["gen","car:إجباري","car:خاص","car:تجاري","clm","cust","rep"];
+const RPRESET={"موظف إصدار سيارات":["car:إجباري","car:خاص","car:تجاري","clm","rep"],"موظف إصدار تأمينات عامة":["gen","clm","rep"],"موظف تكويد":["cust","prod","ast","rep"],"موظف":DEFP,"موظفة":DEFP};
 const canPII=()=>isAdmin()||(me&&me.role=="موظف تكويد");
 const can=k=>isAdmin()||(me.perm||DEFP).includes(k);
 const permBoxes=s=>PERMS.map(([k,l])=>`<label><input type="checkbox" data-p="${k}"${s.includes(k)?" checked":""}> ${l}</label>`).join("");
@@ -108,7 +108,7 @@ function enter(){
  if(!isAdmin()&&(can("cust")||can("prod")||can("ast")))dep.push("التكويد");
  $("dep").textContent=dep.join(" + ")||"—";["st_cu","snewc"].forEach(i=>{$(i).hidden=!can("cust")});["st_pr","cu_t_pr"].forEach(i=>{$(i).hidden=!can("prod")});$("e_tabs").querySelector('[data-go="cust"]').hidden=!can("cust");
  $("hnote").textContent=ins.length?"اختر من القائمة العلوية: وثيقة ← نوع الوثيقة المراد إصدارها":(can("cust")||can("prod")||can("ast")?"استخدم القوائم المتاحة لك (التكويد / أصول الشركة)":"لا توجد صلاحيات إصدار لحسابك، تواصل مع المدير.");
- const M=[["وثيقة",ins.concat(ins.length&&can("cust")?[["cust","تكويد العملاء"]]:[],ins.length?[["upl","رفع المستندات"]]:[])],["التكويد",(can("cust")?[["cust","تكويد العملاء"]]:[]).concat(can("prod")?[["prods","تكويد المنتجين"]]:[])],["أصول الشركة",can("ast")?[["ast","إدخال باركود الأصول"]]:[]],["الملاحق",ins.length?[["end_chg","ملحق تغييرات عامة"],["end_add","ملحق إضافة"],["end_ext","ملحق مد فترة التأمين"],["end_red","ملحق تقليل الفترة التأمينية"]].concat(isAdmin()?[["end_cls","ملحق إلغاء بالتصفية"]]:[]).concat([["end_list","سجل الملاحق"]]):[]],["التعويضات",(ins.length&&can("clm")?[["clm","إنشاء تعويض"]]:[]).concat(isAdmin()?[["crep","تقارير التعويضات"]]:[])],["الطباعة",[["prt","نموذج الطباعة"]]],["التقارير",isAdmin()?[["rep","عرض التقرير"]]:[]],["أشياء أخرى",isAdmin()?[["usr","المستخدمون والصلاحيات"],["sec","سجل الأمان"]]:[]],["إعادة التأمين",isAdmin()?[["ri","إضافة اتفاقية"]]:[]]];
+ const M=[["وثيقة",ins.concat(ins.length&&can("cust")?[["cust","تكويد العملاء"]]:[],ins.length?[["upl","رفع المستندات"]]:[])],["التكويد",(can("cust")?[["cust","تكويد العملاء"]]:[]).concat(can("prod")?[["prods","تكويد المنتجين"]]:[])],["أصول الشركة",can("ast")?[["ast","إدخال باركود الأصول"]]:[]],["الملاحق",ins.length?[["end_chg","ملحق تغييرات عامة"],["end_add","ملحق إضافة"],["end_ext","ملحق مد فترة التأمين"],["end_renew","ملحق تجديد وثيقة"],["end_red","ملحق تقليل الفترة التأمينية"]].concat(isAdmin()?[["end_cls","ملحق إلغاء بالتصفية"]]:[]).concat([["end_list","سجل الملاحق"]]):[]],["التعويضات",(ins.length&&can("clm")?[["clm","إنشاء تعويض"]]:[]).concat(isAdmin()?[["crep","تقارير التعويضات"]]:[])],["الطباعة",[["prt","نموذج الطباعة"]]],["التقارير",can("rep")?[["rep","عرض التقرير"]]:[]],["أشياء أخرى",isAdmin()?[["usr","المستخدمون والصلاحيات"],["sec","سجل الأمان"]]:[]],["إعادة التأمين",isAdmin()?[["ri","إضافة اتفاقية"]]:[]]];
  $("menu").innerHTML='<div class="mi"><button class="d" data-k="home">المنزل</button></div>'+M.filter(m=>m[1].length).map(([t,it])=>`<div class="mi"><button>${t}</button><div class="dd">${it.map(([k,l])=>`<button data-k="${k}"${k?"":" disabled"}>${l}</button>`).join("")}</div></div>`).join("");
  $("menu").querySelectorAll(".mi>button").forEach(b=>b.onclick=e=>{e.stopPropagation();if(b.dataset.k){closeM();show(b.dataset.k);return}const p=b.parentNode,o=p.classList.contains("open");closeM();if(!o)p.classList.add("open")});
  $("menu").querySelectorAll(".dd button").forEach(b=>b.onclick=()=>{closeM();show(b.dataset.k)});
@@ -119,7 +119,7 @@ const closeM=()=>$("menu").querySelectorAll(".mi").forEach(x=>x.classList.remove
 document.addEventListener("click",closeM);
 $("ttl").onclick=$("logo").onclick=()=>{if(me)show("home")};
 function show(k){
- if(k=="prods"){openProd();return}if(k=="cust"&&!can("cust"))return;if(k=="ast"&&!can("ast"))return;edit=null;const sr=k=="sgen"||k=="scar",ins=k=="gen"||k=="car";
+ if(k=="prods"){openProd();return}if(k=="cust"&&!can("cust"))return;if(k=="ast"&&!can("ast"))return;if(k=="rep"&&!can("rep"))return;edit=null;const sr=k=="sgen"||k=="scar",ins=k=="gen"||k=="car";
  $("p-home").hidden=k!="home";$("p-search").hidden=!sr;$("p-ins").hidden=!ins;$("p-rep").hidden=k!="rep";$("p-usr").hidden=k!="usr";$("p-clm").hidden=k!="clm";$("p-crep").hidden=k!="crep";$("p-ri").hidden=k!="ri";$("p-end").hidden=!k.startsWith("end_");$("p-prt").hidden=k!="prt";$("p-upl").hidden=k!="upl";$("p-cust").hidden=k!="cust";$("p-sec").hidden=k!="sec";$("p-ast").hidden=k!="ast";$("p-terms").hidden=true;$("p-prem").hidden=true;
  if(sr){cur=k.slice(1);searchUI()}
  if(ins){cur=k;build()}
@@ -139,7 +139,7 @@ const F={
 gen:[...common,["kind","نوع التأمين","select",Object.keys(GEN)],["item","وصف الشيء المؤمَّن عليه","text"],["place","موقع الخطر","text"],["sum","مبلغ التأمين (ج.م)","number"],["start","بداية التأمين","date"],["months","المدة (شهر)","number"],["bene","المستفيد (اختياري)","text"]],
 car:[...common,["plate","رقم اللوحة","text"],["brand","الماركة","select",BRANDS],["model","الموديل","text"],["year","سنة الصنع","number"],["chassis","رقم الشاسيه","text"],["motor","رقم الموتور","text"],["color","اللون","text"],["use","نوع التأمين","select",Object.keys(KINDS)],["cover","مستوى التغطية (للخاص والتجاري)","select",Object.keys(COVER)],["sum","قيمة السيارة (ج.م)","number"],["start","بداية التأمين","date"],["months","المدة (شهر)","number"]]};
 F.car.push(["fuel","الوقود","select",["","بنزين","سولار","غاز طبيعي","كهرباء","هجين"]],["cyl","عدد السلندرات","number"],["body","شكل الهيكل","select",["","سيدان","هاتشباك","ستيشن","SUV","كروس أوفر","كوبيه","كشف","بيك أب","ميكروباص","أخرى"]],["cond","جديدة / مستعملة","select",["","جديدة","مستعملة"]],["cc","السعة اللترية (cc)","number"],["pax","عدد الركاب","number"],["prev","شركة التأمين السابقة","text"],["gov","المحافظة","select",["","القاهرة","الجيزة","الإسكندرية","القليوبية","الشرقية","الدقهلية","الغربية","المنوفية","البحيرة","كفر الشيخ","دمياط","بورسعيد","الإسماعيلية","السويس","شمال سيناء","جنوب سيناء","الفيوم","بني سويف","المنيا","أسيوط","سوهاج","قنا","الأقصر","أسوان","البحر الأحمر","الوادي الجديد","مطروح"]],["dedt","نوع التحمل","select",["","بدون تحمل","عن كل حادث (مبلغ)","نسبة من الخسارة"]],["dedp","نسبة التحمل %","number"],["dedv","قيمة التحمل (ج.م)","number"]);
-["gen","car"].forEach(k=>F[k].push(["insured","اسم المؤمَّن عليه","text"],["ptype","نوع العميل","select",["","فردي","شركة"]],["prod","الحالة الإنتاجية","text"]));
+["gen","car"].forEach(k=>F[k].push(["insured","اسم المؤمَّن له","text"],["ptype","نوع العميل","select",["","فردي","شركة"]],["prod","الحالة الإنتاجية","text"]));
 const OPT=["insured","ptype","prod","fuel","cyl","body","cond","cc","pax","prev","gov","dedt","dedp","dedv","bene"];
 const REQ={gen:["name","addr","kind","item","place","sum","start","months"],car:["name","addr","use","brand","model","year","plate","chassis","motor","color","sum","start","months"]};
 const LAY={hd:["months","name","addr","start"],body:{gen:["insured","ptype","prod","kind","item","place","sum","bene"],car:["insured","ptype","prod","use","cover","brand","model","year","plate","chassis","motor","color","fuel","cyl","body","cond","cc","pax","prev","gov","dedt","dedp","dedv","sum"]}};
@@ -151,7 +151,8 @@ function build(){
  $("form").innerHTML=F[cur].map(([id,l,t,o])=>`<div><label for="f_${id}">${l}</label>`+(t=="select"?`<select id="f_${id}">${o.map(x=>`<option>${x}</option>`).join("")}</select>`:`<input id="f_${id}" type="${t}"${t=="number"?' min="0"':''}>`)+`</div>`).join("");
  layoutForm();
  if(cur=="car")[...$("f_use").options].forEach(o=>{if(!can("car:"+o.value))o.remove()});$("f_start").value=today();$("f_months").value=12;if(cur=="car")$("f_year").value=new Date().getFullYear();
- if(cur=="car"){$("f_brand").insertAdjacentHTML("afterbegin",'<option value="">— اختر الماركة —</option>');$("f_brand").value="";$("form").insertAdjacentHTML("beforeend",'<datalist id="mdl"></datalist>');$("f_model").setAttribute("list","mdl");$("f_model").placeholder="اكتب أو اختر الموديل";lastB=null}$("form").oninput=calc;calc();$("err").textContent="";imgs=[];thumbs();$("doc").hidden=true;$("docbtns").hidden=true;
+ if(cur=="car"){$("f_brand").insertAdjacentHTML("afterbegin",'<option value="">— اختر الماركة —</option>');$("f_brand").value="";$("form").insertAdjacentHTML("beforeend",'<datalist id="mdl"></datalist>');$("f_model").setAttribute("list","mdl");$("f_model").placeholder="اكتب أو اختر الموديل";lastB=null}
+ $("form").oninput=calc;calc();$("err").textContent="";imgs=[];thumbs();$("doc").hidden=true;$("docbtns").hidden=true;
 }
 function compute(r){
  const sum=+r.sum||0,m=+r.months||0;let p=0;
@@ -246,15 +247,29 @@ function copyDoc(no){
 $("sgo").onclick=runSearch;$("sclr").onclick=searchUI;$("snew").onclick=openWiz;$("back").onclick=()=>show("s"+cur);
 
 /* ---------- reports (admin) ---------- */
+function exportToExcel(tableId, filename = 'report.xls') {
+    const table = document.getElementById(tableId);
+    if (!table) return;
+    const html = table.outerHTML;
+    const blob = new Blob(['\ufeff' + html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
+
 function report(){
- if(!isAdmin())return;
+ if(!can("rep"))return;
  const a=$("rf").value||"0000-00-00",b=$("rt").value||"9999-99-99";
  const l=docs.filter(d=>d.date>=a&&d.date<=b);
  const grp=fn=>{const m={};l.forEach(d=>{const k=fn(d);m[k]=m[k]||{n:0,t:0};m[k].n++;m[k].t+=d.c.tot});return Object.entries(m)};
  const tot=l.reduce((s,d)=>s+d.c.tot,0),mx=x=>Math.max(1,...x.map(e=>e[1].t));
- const tbl=(h,g)=>{const m=mx(g);return`<h2 style="margin-top:18px">${h}</h2><div class="scroll"><table><thead><tr><th>البند</th><th>العدد</th><th>الإجمالي</th><th style="width:35%"></th></tr></thead><tbody>${g.length?g.map(([k,x])=>`<tr><td>${esc(k)}</td><td>${x.n}</td><td>${fmt(x.t)}</td><td><div class="bar" style="width:${Math.round(x.t/m*100)}%"></div></td></tr>`).join(""):'<tr><td colspan="4">لا توجد بيانات</td></tr>'}</tbody></table></div>`};
+ const tbl=(h,g,id)=>{const m=mx(g);return`<div style="display:flex;justify-content:space-between;align-items:center;margin-top:18px"><h2>${h}</h2><button class="btn sm alt" onclick="exportToExcel('${id}', '${h}.xls')">📥 تنزيل إكسيل</button></div><div class="scroll"><table id="${id}"><thead><tr><th>البند</th><th>العدد</th><th>الإجمالي</th><th style="width:35%"></th></tr></thead><tbody>${g.length?g.map(([k,x])=>`<tr><td>${esc(k)}</td><td>${x.n}</td><td>${fmt(x.t)}</td><td><div class="bar" style="width:${Math.round(x.t/m*100)}%"></div></td></tr>`).join(""):'<tr><td colspan="4">لا توجد بيانات</td></tr>'}</tbody></table></div>`};
  $("rout").innerHTML=`<div class="calc"><div>عدد الوثائق<b>${l.length}</b></div><div>إجمالي الأقساط<b>${fmt(tot)}</b></div><div>تأمين عام<b>${l.filter(d=>d.cur=="gen").length}</b></div><div>تأمين سيارات<b>${l.filter(d=>d.cur=="car").length}</b></div></div>`
-  +tbl("حسب النوع",grp(d=>d.cur=="car"?"تأمين السيارات":"عام — "+d.f.kind))+tbl("حسب الموظف",grp(d=>d.by))+tbl("حسب الشهر",grp(d=>d.date.slice(0,7)).sort());
+  +tbl("حسب النوع",grp(d=>d.cur=="car"?"تأمين السيارات":"عام — "+d.f.kind),"tbl_type")+tbl("حسب الموظف",grp(d=>d.by),"tbl_emp")+tbl("حسب الشهر",grp(d=>d.date.slice(0,7)).sort(),"tbl_month");
 }
 $("rgo").onclick=report;
 
@@ -475,7 +490,7 @@ function clmUI(){
 }
 function clmList(){
  const l=claims.filter(c=>isAdmin()||c.byU==me.u);
- $("c_rows").innerHTML=l.length?l.map(c=>`<tr><td>${esc(c.no)}</td><td>${esc(c.pno)}</td><td>${esc(c.client)}</td><td>${esc(c.type)}</td><td>${esc(c.ad)}</td><td>${fmt(c.am)}</td><td>${esc(c.st)}</td><td>${esc(c.by)}</td></tr>`).join(""):'<tr><td colspan="8">لا توجد مطالبات</td></tr>';
+ $("c_rows").innerHTML=l.length?l.map(c=>`<tr><td>${esc(c.no)}</td><td>${esc(c.pno)}</td><td>${esc(c.client)}</td><td>${esc(c.type)}</td><td>${esc(c.ad)}</td><td>${fmt(c.am)}</td><td>${esc(c.st)}</td><td>${esc(c.by)}</td></tr>`).join(""):'<tr><td colspan="8">لا توجد مطالبة مسجلة</td></tr>';
 }
 $("c_pno").oninput=()=>{const d=myDocs().find(x=>x.no==$("c_pno").value.trim());$("c_cl").value=d?d.f.name:"";$("c_pi").value=d?(d.cur=="car"?"سيارة — "+d.f.use+" — "+d.f.plate:"عام — "+d.f.kind)+" | من "+d.f.start+" إلى "+d.end:""};
 $("c_img").onchange=async e=>{for(const f of e.target.files){const x=await packImg(f);if(x&&cimgs.length<6)cimgs.push(x)}e.target.value="";cth()};
@@ -496,11 +511,11 @@ function crep(){
  const l=claims.filter(c=>c.ad>=a&&c.ad<=b&&(!s||c.st==s)&&(!t||c.type==t));
  const ok=c=>c.st=="معتمدة"||c.st=="مدفوعة",sum=(x,f)=>x.reduce((n,c)=>n+f(c),0);
  const grp=fn=>{const m={};l.forEach(c=>{const k=fn(c);m[k]=m[k]||{n:0,a:0,p:0};m[k].n++;m[k].a+=c.am;m[k].p+=ok(c)?c.ap||0:0});return Object.entries(m)};
- const tbl=(h,g)=>`<h2 style="margin-top:18px">${h}</h2><div class="scroll"><table><thead><tr><th>البند</th><th>العدد</th><th>المبلغ المطالب به</th><th>المبلغ المعتمد</th></tr></thead><tbody>${g.length?g.map(([k,x])=>`<tr><td>${esc(k)}</td><td>${x.n}</td><td>${fmt(x.a)}</td><td>${fmt(x.p)}</td></tr>`).join(""):'<tr><td colspan="4">لا توجد بيانات</td></tr>'}</tbody></table></div>`;
+ const tbl=(h,g,id)=>`<div style="display:flex;justify-content:space-between;align-items:center;margin-top:18px"><h2>${h}</h2><button class="btn sm alt" onclick="exportToExcel('${id}', '${h}.xls')">📥 تنزيل إكسيل</button></div><div class="scroll"><table id="${id}"><thead><tr><th>البند</th><th>العدد</th><th>المبلغ المطالب به</th><th>المبلغ المعتمد</th></tr></thead><tbody>${g.length?g.map(([k,x])=>`<tr><td>${esc(k)}</td><td>${x.n}</td><td>${fmt(x.a)}</td><td>${fmt(x.p)}</td></tr>`).join(""):'<tr><td colspan="4">لا توجد بيانات</td></tr>'}</tbody></table></div>`;
  const rows=l.map(c=>{const i=claims.indexOf(c);return`<tr><td>${esc(c.no)}</td><td>${esc(c.pno)}</td><td>${esc(c.client)}</td><td>${esc(c.type)}</td><td>${esc(c.ad)}</td><td>${fmt(c.am)}</td><td><select data-st="${i}">${CST.map(x=>`<option${x==c.st?" selected":""}>${x}</option>`).join("")}</select></td><td><input type="number" min="0" data-ap="${i}" value="${c.ap||0}" style="width:110px"></td><td><button class="btn sm" data-sv="${i}">حفظ</button><div class="err" id="ce${i}"></div></td></tr>`}).join("");
  $("cout").innerHTML=`<div class="calc"><div>عدد المطالبات<b>${l.length}</b></div><div>إجمالي المطالب به<b>${fmt(sum(l,c=>c.am))}</b></div><div>إجمالي المعتمد<b>${fmt(sum(l.filter(ok),c=>c.ap||0))}</b></div><div>إجمالي المدفوع<b>${fmt(sum(l.filter(c=>c.st=="مدفوعة"),c=>c.ap||0))}</b></div><div>عدد المرفوضة<b>${l.filter(c=>c.st=="مرفوضة").length}</b></div></div>`
-  +tbl("حسب الحالة",grp(c=>c.st))+tbl("حسب نوع التعويض",grp(c=>c.type))+tbl("حسب نوع الوثيقة",grp(c=>c.cur=="car"?"تأمين السيارات":"التأمينات العامة"))+tbl("حسب الموظف المُسجِّل",grp(c=>c.by))
-  +`<div class="np"><h2 style="margin-top:18px">تفاصيل المطالبات وتحديث الحالة</h2><div class="scroll"><table><thead><tr><th>رقم المطالبة</th><th>الوثيقة</th><th>العميل</th><th>النوع</th><th>تاريخ الحادث</th><th>المطالب به</th><th>الحالة</th><th>المبلغ المعتمد</th><th></th></tr></thead><tbody>${rows||'<tr><td colspan="9">لا توجد مطالبات</td></tr>'}</tbody></table></div></div>`;
+  +tbl("حسب الحالة",grp(c=>c.st),"ctbl_st")+tbl("حسب نوع التعويض",grp(c=>c.type),"ctbl_type")+tbl("حسب نوع الوثيقة",grp(c=>c.cur=="car"?"تأمين السيارات":"التأمينات العامة"),"ctbl_cur")+tbl("حسب الموظف المُسجِّل",grp(c=>c.by),"ctbl_emp")
+  +`<div class="np"><div style="display:flex;justify-content:space-between;align-items:center;margin-top:18px"><h2>تفاصيل المطالبات وتحديث الحالة</h2><button class="btn sm alt" onclick="exportToExcel('ctbl_details', 'تفاصيل_المطالبات.xls')">📥 تنزيل إكسيل</button></div><div class="scroll"><table id="ctbl_details"><thead><tr><th>رقم المطالبة</th><th>الوثيقة</th><th>العميل</th><th>النوع</th><th>تاريخ الحادث</th><th>المطالب به</th><th>الحالة</th><th>المبلغ المعتمد</th><th></th></tr></thead><tbody>${rows||'<tr><td colspan="9">لا توجد مطالبات</td></tr>'}</tbody></table></div></div>`;
  $("cout").querySelectorAll("[data-sv]").forEach(b=>b.onclick=()=>{
   const i=+b.dataset.sv,c=claims[i],st=$("cout").querySelector('[data-st="'+i+'"]').value,ap=+$("cout").querySelector('[data-ap="'+i+'"]').value||0,e=$("ce"+i);
   if((st=="معتمدة"||st=="مدفوعة")&&!(ap>0)){e.textContent="أدخل المبلغ المعتمد";return}
@@ -894,7 +909,7 @@ $("w_ok").onclick=()=>{
 };
 /* ---------- endorsements ---------- */
 let ends=ld("ins_end",[]),et=null;
-const ET={chg:"ملحق تغييرات عامة",add:"ملحق إضافة",ext:"ملحق مد فترة التأمين",red:"ملحق تقليل الفترة التأمينية",cls:"ملحق إلغاء بالتصفية"};
+const ET={chg:"ملحق تغييرات عامة",add:"ملحق إضافة",ext:"ملحق مد فترة التأمين",renew:"ملحق تجديد وثيقة",red:"ملحق تقليل الفترة التأمينية",cls:"ملحق إلغاء بالتصفية"};
 const pctFees=FEES.reduce((n,x)=>n+(x[1]||0),0);
 const FLD={all:[["name","اسم المؤمَّن له"],["addr","العنوان"]],car:[["plate","رقم اللوحة"],["chassis","رقم الشاسيه"],["motor","رقم الموتور"],["color","اللون"],["model","الموديل"],["year","سنة الصنع"]],gen:[["item","وصف الشيء المؤمَّن عليه"],["place","موقع الخطر"],["bene","المستفيد"]]};
 const eDocs=()=>myDocs().filter(d=>!d.closed);
@@ -902,10 +917,11 @@ const eDoc=()=>eDocs().find(d=>d.no==$("e_p").value.trim());
 function endUI(t){
  et=ET[t]&&(t!="cls"||isAdmin())?t:null;
  $("e_tabs").querySelectorAll("button").forEach(b=>{b.classList.toggle("sel",b.dataset.t===et);if(b.dataset.t=="cls")b.hidden=!isAdmin()});
- $("e_form").hidden=!et;$("e_chg").hidden=et!="chg";$("e_add").hidden=et!="add";$("e_cls").hidden=et!="cls";$("e_ext").hidden=et!="ext";$("e_red").hidden=et!="red";
+ $("e_form").hidden=!et;$("e_chg").hidden=et!="chg";$("e_add").hidden=et!="add";$("e_cls").hidden=et!="cls";$("e_ext").hidden=!(et=="ext"||et=="renew");$("e_red").hidden=et!="red";
  $("edoc").hidden=true;$("edbtns").hidden=true;
  if(et){
   $("e_h").textContent=ET[et];
+  $("e_xm_label").textContent=et=="renew"?"مدة التجديد (بالأشهر)":"مدة التمديد (بالأشهر)";$("e_xp_label").textContent=et=="renew"?"قسط التجديد (ج.م)":"قسط التمديد (ج.م)";$("e_xn_label").textContent=et=="renew"?"تاريخ نهاية التجديد":"تاريخ النهاية الجديد";
   $("e_pl").innerHTML=eDocs().map(d=>`<option value="${esc(d.no)}">${esc(d.f.name)}</option>`).join("");
   ["e_p","e_cl","e_pi","e_new","e_old","e_av","e_ar","e_ap","e_ac","e_n","e_pb","e_rf","e_xb","e_xm","e_xp","e_xn","e_rend","e_rb","e_rrf"].forEach(i=>$(i).value="");
   $("e_d").value=today();$("e_dd").value=0;$("e_am").checked=false;$("e_xman").checked=false;$("e_upd").checked=true;$("e_fld").innerHTML="";$("e_err").textContent="";
@@ -936,12 +952,12 @@ function eCalc(){
   $("e_rb").value=base.toFixed(2);$("e_rrf").value=refund.toFixed(2);
   fin=`<div>القسط المسدد<b>${fmt(base)}</b></div><div>المدة المختصرة<b>${Math.round(reduced)} يوم</b></div><div class="tot">القسط المسترد<b>${fmt(refund)}</b></div><div>النهاية الجديدة<b>${newEnd||"—"}</b></div>`;
  }
- if(et=="ext"&&d){
+ if((et=="ext"||et=="renew")&&d){
   const m0=+d.f.months||12,xm=+$("e_xm").value||0,base=+$("e_xb").value||0,man=$("e_xman").checked;
-  $("e_xn").value=xm>0?addMonths(d.end,xm):"";$("e_xp").readOnly=!man;
+  $("e_xn").value=xm>0?(et=="renew"?new Date(new Date(addMonths(eff,xm)+"T00:00:00").getTime()-86400000).toISOString().slice(0,10):addMonths(d.end,xm)):"";$("e_xp").readOnly=!man;
   if(!man)$("e_xp").value=(base*xm/m0).toFixed(2);
   const p=+$("e_xp").value||0,f=p*pctFees/100;
-  fin=`<div>قسط التمديد<b>${fmt(p)}</b></div><div>الرسوم والدمغات<b>${fmt(f)}</b></div><div class="tot">الإجمالي المستحق<b>${fmt(p+f)}</b></div><div>النهاية الجديدة<b>${$("e_xn").value||"—"}</b></div>`;
+  fin=`<div>${et=="renew"?"قسط التجديد":"قسط التمديد"}<b>${fmt(p)}</b></div><div>الرسوم والدمغات<b>${fmt(f)}</b></div><div class="tot">الإجمالي المستحق<b>${fmt(p+f)}</b></div><div>النهاية الجديدة<b>${$("e_xn").value||"—"}</b></div>`;
  }
  $("e_fin").innerHTML=fin;
 }
@@ -956,7 +972,7 @@ $("e_p").oninput=()=>{
   const r=(d.pm&&d.pm.rows||[]).find(x=>x.on&&x.rate);$("e_ar").value=r?r.rate:"";
   const names=d.cur=="car"?["خدمة مساعدة الطريق","شغب واضطرابات","حوادث شخصية للركاب","الحوادث الشخصية (السائق)","الأخطار الطبيعية","هلاك كلي"]:(GCOV[d.f.kind]||[]).slice(1).map(x=>x[0]);
   $("e_acl").innerHTML=names.map(n=>`<option value="${esc(n)}">`).join("");
-  $("e_pb").value=+((d.pm?d.pm.due:d.c.prem)||0).toFixed(2);$("e_xb").value=$("e_pb").value;if(et=="ext")$("e_d").value=d.end;
+  $("e_pb").value=+((d.pm?d.pm.due:d.c.prem)||0).toFixed(2);$("e_xb").value=$("e_pb").value;if(et=="ext")$("e_d").value=d.end; if(et=="renew")$("e_d").value=new Date(new Date(d.end+"T00:00:00").getTime()+86400000).toISOString().slice(0,10);
  }else{$("e_pb").value="";$("e_xb").value=""}
  eCalc();
 };
@@ -973,7 +989,7 @@ $("e_save").onclick=()=>{
  if(!et)return;
  if(et=="cls"&&!isAdmin()){e.textContent="ملحق إلغاء بالتصفية للمدير فقط";return}
  if(!d){e.textContent="اختر رقم وثيقة صحيح (غير ملغاة) من القائمة";return}
- if(!eff||eff<d.f.start||eff>d.end){e.textContent="تاريخ سريان الملحق خارج مدة الوثيقة ("+d.f.start+" إلى "+d.end+")";return}
+ if(!eff||(et=="renew"?eff<=d.end:(eff<d.f.start||eff>d.end))){e.textContent=et=="renew"?"يجب أن يبدأ التجديد بعد تاريخ انتهاء الوثيقة الحالية مباشرة أو بعده":"تاريخ سريان الملحق خارج مدة الوثيقة ("+d.f.start+" إلى "+d.end+")";return}
  const rec={no:"",type:et,pno:d.no,cur:d.cur,client:d.f.name,eff,notes:$("e_n").value.trim(),by:me.n,byU:me.u,date:today(),data:{},amt:0,fees:0};
  if(et=="chg"){
   const k=$("e_fld").value,nv=$("e_new").value.trim();
@@ -1000,18 +1016,18 @@ $("e_save").onclick=()=>{
   if(!newEnd||newEnd>=oldEnd||newEnd<=eff){e.textContent="يجب أن يكون تاريخ النهاية الجديد بعد تاريخ سريان الملحق وقبل تاريخ النهاية الحالي";return}
   rec.data={oldEnd,newEnd,refund};rec.amt=-refund;
  }
- if(et=="ext"){
+ if(et=="ext"||et=="renew"){
   const xm=+$("e_xm").value,p=+$("e_xp").value||0;
   if(!(xm>=1)||xm!=Math.floor(xm)){e.textContent="أدخل مدة التمديد بالأشهر (رقم صحيح 1 أو أكثر)";return}
   if(!(p>0)){e.textContent="قسط التمديد يجب أن يكون أكبر من صفر";return}
-  rec.data={xm,oldEnd:d.end,newEnd:addMonths(d.end,xm)};rec.amt=p;rec.fees=p*pctFees/100;
+  rec.data={xm,oldEnd:d.end,newEnd:et=="renew"?new Date(new Date(addMonths(eff,xm)+"T00:00:00").getTime()-86400000).toISOString().slice(0,10):addMonths(d.end,xm),start:eff};rec.amt=p;rec.fees=p*pctFees/100;
  }
  const y=new Date().getFullYear(),mx=Math.max(0,...ends.filter(x=>x.no.startsWith("END-"+y)).map(x=>+x.no.split("-")[2]||0));
  rec.no="END-"+y+"-"+String(mx+1).padStart(5,"0");
  if(et=="chg"&&rec.data.upd)d.f[rec.data.k]=rec.data.nw;
  if(et=="cls"){d.closed={date:eff,reason:rec.data.reason,refund:-rec.amt,end:rec.no};audit("doc-cancel",d.no)}
- if(et=="ext"){d.f.months=String((+d.f.months||0)+rec.data.xm);d.end=rec.data.newEnd}if(et=="red"){d.end=rec.data.newEnd;d.f.months=String(Math.max(1,Math.round((new Date(d.end)-new Date(d.f.start))/(864e5*30.4375))));}
- ends.unshift(rec);sv("ins_end",ends);if(et=="ext"||et=="red"||et=="cls"||(et=="chg"&&rec.data.upd))sv("ins_docs",docs);
+ if(et=="ext"||et=="renew"){d.f.months=String((+d.f.months||0)+rec.data.xm);d.end=rec.data.newEnd}if(et=="red"){d.end=rec.data.newEnd;d.f.months=String(Math.max(1,Math.round((new Date(d.end)-new Date(d.f.start))/(864e5*30.4375))));}
+ ends.unshift(rec);sv("ins_end",ends);if(et=="ext"||et=="renew"||et=="red"||et=="cls"||(et=="chg"&&rec.data.upd))sv("ins_docs",docs);
  const t=et;endUI(t);renderEnd(rec);$("e_err").innerHTML='<span class="ok">تم إصدار الملحق '+esc(rec.no)+'</span>';
 };
 function endList(){
@@ -1026,8 +1042,8 @@ function renderEnd(r){
  if(r.type=="add")det=`<tr><th>نوع الإضافة</th><td>${esc(r.data.at)}</td><th>${r.data.ac?"التغطية المضافة":"مبلغ التأمين المضاف"}</th><td>${r.data.ac?esc(r.data.ac)+" — ":""}${fmt(r.data.av)}</td></tr><tr><th>نسبة القسط</th><td>${esc(r.data.rate)}%</td><th>القسط الإضافي</th><td>${fmt(r.amt)}</td></tr><tr><th>الرسوم والدمغات</th><td>${fmt(r.fees)}</td><th>الإجمالي المستحق</th><td><b>${fmt(r.amt+r.fees)}</b></td></tr>`;
  if(r.type=="cls")det=`<tr><th>سبب الإلغاء</th><td>${esc(r.data.reason)}</td><th>القسط المسدد</th><td>${fmt(r.data.base)}</td></tr><tr><th>خصم المصاريف</th><td>${esc(r.data.dd)}%</td><th>القسط المسترد للعميل</th><td><b>${fmt(-r.amt)}</b></td></tr>`;
  if(r.type=="red")det=`<tr><th>نهاية الوثيقة السابقة</th><td>${esc(r.data.oldEnd)}</td><th>نهاية الوثيقة الجديدة</th><td><b>${esc(r.data.newEnd)}</b></td></tr><tr><th>القسط المسترد عن تقليل المدة</th><td colspan="3"><b>${fmt(r.data.refund)}</b></td></tr>`;
- if(r.type=="ext")det=`<tr><th>نهاية الوثيقة السابقة</th><td>${esc(r.data.oldEnd)}</td><th>نهاية الوثيقة الجديدة</th><td><b>${esc(r.data.newEnd)}</b></td></tr><tr><th>مدة التمديد</th><td>${esc(r.data.xm)} شهر</td><th>قسط التمديد</th><td>${fmt(r.amt)}</td></tr><tr><th>الرسوم والدمغات</th><td>${fmt(r.fees)}</td><th>الإجمالي المستحق</th><td><b>${fmt(r.amt+r.fees)}</b></td></tr>`;
- const stmt=r.type=="red"?"تم تقليل مدة التأمين حتى تاريخ النهاية الجديد الموضح أعلاه، ويُرد القسط عن المدة المختصرة وفق الاحتساب الموضح بالملحق.":r.type=="ext"?"يُمدّ سريان الوثيقة المذكورة إلى تاريخ النهاية الجديد الموضح أعلاه، وتبقى باقي الشروط والاشتراطات الواردة بالوثيقة كما هي دون أي تعديل أو تغيير.":r.type=="cls"?"تُلغى الوثيقة المذكورة بالتصفية اعتبارًا من تاريخ سريان هذا الملحق، ولا تُقبل أي مطالبات عن حوادث تقع بعد هذا التاريخ.":"يُعتبر هذا الملحق جزءًا لا يتجزأ من الوثيقة الأصلية، وتبقى باقي الشروط والاشتراطات الواردة بالوثيقة كما هي دون أي تعديل أو تغيير.";
+ if(r.type=="ext"||r.type=="renew")det=`<tr><th>نهاية الوثيقة السابقة</th><td>${esc(r.data.oldEnd)}</td><th>نهاية الوثيقة الجديدة</th><td><b>${esc(r.data.newEnd)}</b></td></tr><tr><th>${r.type=="renew"?"مدة التجديد":"مدة التمديد"}</th><td>${esc(r.data.xm)} شهر</td><th>${r.type=="renew"?"قسط التجديد":"قسط التمديد"}</th><td>${fmt(r.amt)}</td></tr><tr><th>الرسوم والدمغات</th><td>${fmt(r.fees)}</td><th>الإجمالي المستحق</th><td><b>${fmt(r.amt+r.fees)}</b></td></tr>`;
+ const stmt=r.type=="renew"?"تم تجديد الوثيقة اعتبارًا من "+esc(r.data.start)+" حتى "+esc(r.data.newEnd)+"، وتظل باقي الشروط والاشتراطات سارية ما لم ينص هذا الملحق على خلاف ذلك.":r.type=="red"?"تم تقليل مدة التأمين حتى تاريخ النهاية الجديد الموضح أعلاه، ويُرد القسط عن المدة المختصرة وفق الاحتساب الموضح بالملحق.":r.type=="ext"?"يُمدّ سريان الوثيقة المذكورة إلى تاريخ النهاية الجديد الموضح أعلاه، وتبقى باقي الشروط والاشتراطات الواردة بالوثيقة كما هي دون أي تعديل أو تغيير.":r.type=="cls"?"تُلغى الوثيقة المذكورة بالتصفية اعتبارًا من تاريخ سريان هذا الملحق، ولا تُقبل أي مطالبات عن حوادث تقع بعد هذا التاريخ.":"يُعتبر هذا الملحق جزءًا لا يتجزأ من الوثيقة الأصلية، وتبقى باقي الشروط والاشتراطات الواردة بالوثيقة كما هي دون أي تعديل أو تغيير.";
  $("edoc").innerHTML=`<h3>${esc(ET[r.type])}</h3><div class="sub">رقم الملحق: ${esc(r.no)} &nbsp;|&nbsp; تاريخ الإصدار: ${esc(r.date)} &nbsp;|&nbsp; المُصدِر: ${esc(r.by)}</div>
  <table><tr><th>رقم الوثيقة الأصلية</th><td>${esc(r.pno)}</td><th>المؤمَّن له</th><td>${esc(r.client)}</td></tr>
  <tr><th>نوع التأمين</th><td>${d?(d.cur=="car"?"سيارات — "+esc(f.use):"عام — "+esc(f.kind)):"—"}</td><th>مدة الوثيقة</th><td>${esc(f.start||"—")} ← ${esc(d?d.end:"—")}</td></tr>

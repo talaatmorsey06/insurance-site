@@ -116,7 +116,7 @@
 
 <section id="p-end" hidden>
  <div class="np">
-  <div class="tb" id="e_tabs"><button data-go="docs">📄 الوثائق</button><button data-go="cust">👤 العملاء</button><button data-t="chg">✎ تغييرات عامة</button><button data-t="add">＋ إضافة</button><button data-t="ext">⏩ مد الفترة</button><button data-t="red">⏪ تقليل الفترة التأمينية</button><button data-t="cls">⛔ إلغاء بالتصفية</button></div>
+  <div class="tb" id="e_tabs"><button data-go="docs">📄 الوثائق</button><button data-go="cust">👤 العملاء</button><button data-t="chg">✎ تغييرات عامة</button><button data-t="add">＋ إضافة</button><button data-t="ext">⏩ مد الفترة</button><button data-t="renew">🔄 تجديد الوثيقة</button><button data-t="red">⏪ تقليل الفترة التأمينية</button><button data-t="cls">⛔ إلغاء بالتصفية</button></div>
   <div id="e_form" hidden>
    <div class="card"><h2 id="e_h"></h2>
     <div class="grid">
@@ -152,9 +152,9 @@
     </div>
     <div id="e_ext" class="grid" style="margin-top:12px" hidden>
      <div><label>القسط المسدد للوثيقة (ج.م)</label><input id="e_xb" readonly></div>
-     <div><label>مدة التمديد (بالأشهر)</label><input id="e_xm" type="number" min="1" step="1"></div>
-     <div><label>تاريخ النهاية الجديد</label><input id="e_xn" readonly></div>
-     <div><label>قسط التمديد (ج.م)</label><input id="e_xp" type="number" min="0" step="any" readonly></div>
+     <div><label id="e_xm_label">مدة التمديد (بالأشهر)</label><input id="e_xm" type="number" min="1" step="1"></div>
+     <div><label id="e_xn_label">تاريخ النهاية الجديد</label><input id="e_xn" readonly></div>
+     <div><label id="e_xp_label">قسط التمديد (ج.م)</label><input id="e_xp" type="number" min="0" step="any" readonly></div>
      <div style="display:flex;align-items:end"><label style="display:flex;gap:6px;align-items:center;color:var(--tx);margin:0"><input type="checkbox" id="e_xman" style="width:auto"> قسط يدوي</label></div>
     </div>
     <div style="margin-top:12px"><label>ملاحظات (اختياري)</label><input id="e_n"></div>
@@ -265,9 +265,9 @@
 </section>
 
 <section id="p-rep" hidden>
- <div class="card np"><h2>التقارير</h2>
+ <div class="card np"><h2 id="rtitle">التقارير</h2>
   <div class="grid"><div><label>من تاريخ</label><input type="date" id="rf"></div><div><label>إلى تاريخ</label><input type="date" id="rt"></div></div>
-  <div class="btns"><button class="btn" id="rgo">عرض التقرير</button><button class="btn alt" data-print>طباعة</button></div></div>
+  <div class="btns"><button class="btn" id="rgo">عرض التقرير</button><button class="btn" id="rexp">تنزيل Excel (.xlsx)</button><button class="btn alt" data-print>طباعة</button></div></div>
  <div class="card" id="rout"></div>
 </section>
 
