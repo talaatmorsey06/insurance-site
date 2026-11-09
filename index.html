@@ -43,7 +43,7 @@
 </section>
 
 <section id="p-search" hidden class="np">
- <div class="tb"><button class="sel" id="st_docs">📄 الوثائق</button><button id="st_cu">👤 العملاء</button><button id="st_end">📎 الملاحق</button></div>
+ <div class="tb"><button class="sel" id="st_docs">📄 الوثائق</button><button id="st_cu">👤 العملاء</button><button id="st_pr">🏷 المنتجون</button><button id="st_end">📎 الملاحق</button></div>
  <div class="card" style="border-color:#c9b458"><h2 id="sh" style="text-decoration:underline"></h2>
   <div class="grid" id="sform"></div>
   <div class="btns"><button class="btn" id="sgo">بحث</button><button class="btn alt" id="sclr">إلغاء</button></div></div>
@@ -116,7 +116,7 @@
 
 <section id="p-end" hidden>
  <div class="np">
-  <div class="tb" id="e_tabs"><button data-go="docs">📄 الوثائق</button><button data-go="cust">👤 العملاء</button><button data-t="chg">✎ تغييرات عامة</button><button data-t="add">＋ إضافة</button><button data-t="ext">⏩ مد الفترة</button><button data-t="ren">🔄 تجديد الوثيقة</button><button data-t="cls">⛔ إلغاء بالتصفية</button></div>
+  <div class="tb" id="e_tabs"><button data-go="docs">📄 الوثائق</button><button data-go="cust">👤 العملاء</button><button data-t="chg">✎ تغييرات عامة</button><button data-t="add">＋ إضافة</button><button data-t="ext">⏩ مد الفترة</button><button data-t="red">⏪ تقليل الفترة التأمينية</button><button data-t="cls">⛔ إلغاء بالتصفية</button></div>
   <div id="e_form" hidden>
    <div class="card"><h2 id="e_h"></h2>
     <div class="grid">
@@ -139,6 +139,11 @@
      <div><label>القسط الإضافي (ج.م)</label><input id="e_ap" type="number" min="0" step="any" readonly></div>
      <div style="display:flex;align-items:end"><label style="display:flex;gap:6px;align-items:center;color:var(--tx);margin:0"><input type="checkbox" id="e_am" style="width:auto"> قسط يدوي</label></div>
     </div>
+    <div id="e_red" class="grid" style="margin-top:12px" hidden>
+     <div><label>تاريخ نهاية التأمين الجديد</label><input id="e_rend" type="date"></div>
+     <div><label>القسط المسدد للوثيقة (ج.م)</label><input id="e_rb" readonly></div>
+     <div><label>القسط المسترد عن تقليل المدة (ج.م)</label><input id="e_rrf" readonly></div>
+    </div>
     <div id="e_cls" class="grid" style="margin-top:12px">
      <div><label>سبب الإلغاء</label><select id="e_cr"><option>طلب العميل</option><option>عدم السداد</option><option>بيع السيارة / زوال الخطر</option><option>هلاك كلي</option><option>أخرى</option></select></div>
      <div><label>القسط المسدد (ج.م)</label><input id="e_pb" readonly></div>
@@ -151,12 +156,6 @@
      <div><label>تاريخ النهاية الجديد</label><input id="e_xn" readonly></div>
      <div><label>قسط التمديد (ج.م)</label><input id="e_xp" type="number" min="0" step="any" readonly></div>
      <div style="display:flex;align-items:end"><label style="display:flex;gap:6px;align-items:center;color:var(--tx);margin:0"><input type="checkbox" id="e_xman" style="width:auto"> قسط يدوي</label></div>
-    </div>
-    <div id="e_ren" class="grid" style="margin-top:12px" hidden>
-     <div><label>مدة التجديد (بالأشهر)</label><input id="e_rm" type="number" min="1" step="1"></div>
-     <div><label>تاريخ نهاية الوثيقة بعد التجديد</label><input id="e_rn" readonly></div>
-     <div><label>قسط التجديد (ج.م)</label><input id="e_rp" type="number" min="0" step="any" readonly></div>
-     <div style="display:flex;align-items:end"><label style="display:flex;gap:6px;align-items:center;color:var(--tx);margin:0"><input type="checkbox" id="e_rman" style="width:auto"> قسط يدوي</label></div>
     </div>
     <div style="margin-top:12px"><label>ملاحظات (اختياري)</label><input id="e_n"></div>
     <div id="e_fin" class="calc"></div>
@@ -211,10 +210,10 @@
 </section>
 
 <section id="p-cust" hidden class="np">
- <div class="tb"><button id="cu_t_docs">📄 الوثائق</button><button class="sel">👤 العملاء</button><button id="cu_t_end">📎 الملاحق</button></div>
+ <div class="tb"><button id="cu_t_docs">📄 الوثائق</button><button class="sel">👤 العملاء</button><button id="cu_t_pr">🏷 المنتجون</button><button id="cu_t_end">📎 الملاحق</button></div>
  <div class="card"><h2>تكويد العملاء</h2>
   <div class="grid">
-   <div><label>كود العميل</label><input id="cu_code" readonly></div>
+   <div><label>كود العميل (يدوي أو تلقائي)</label><input id="cu_code" inputmode="numeric" maxlength="10" placeholder="رقم الكود"></div>
    <div><label>اسم العميل / الشركة</label><input id="cu_nm"></div>
    <div><label>نوع العميل</label><select id="cu_ty"><option>فردي</option><option>شركة</option></select></div>
    <div id="cu_wn"><label>الرقم القومي / السجل التجاري</label><input id="cu_ni"></div>
@@ -238,6 +237,31 @@
   <p style="font-size:.9rem;margin-top:0">لم يعد الرقم القومي ورقم الهاتف يُدخلان في الوثائق. هذا الزر يحذف ما كان مخزَّنًا منهما في الوثائق القديمة نهائيًا.</p>
   <div class="err" id="sec_msg"></div>
   <div class="btns"><button class="btn red" id="sec_purge">حذف الرقم القومي والهاتف من الوثائق القديمة</button></div></div>
+</section>
+
+<section id="p-ast" hidden class="np">
+ <div class="card"><h2>أصول الشركة — إدخال الباركود</h2>
+  <div class="grid">
+   <div style="grid-column:1/-1"><label>امسح الباركود أو اكتبه ثم اضغط Enter</label><input id="a_scan" autocomplete="off" placeholder="الباركود…" style="font-size:1.05rem"></div>
+   <div><label>الباركود</label><input id="a_bc"></div>
+   <div><label>اسم الأصل</label><input id="a_nm"></div>
+   <div><label>التصنيف</label><select id="a_ct"><option>أدوات</option><option>أثاث</option><option>أجهزة الشركة</option></select></div>
+   <div><label>الموقع / القسم</label><input id="a_lc"></div>
+   <div><label>المسؤول عن العهدة</label><input id="a_hd"></div>
+   <div><label>تاريخ الشراء</label><input id="a_dt" type="date"></div>
+   <div><label>القيمة (ج.م)</label><input id="a_vl" type="number" min="0" step="any"></div>
+   <div><label>الحالة</label><select id="a_st"><option>سليم</option><option>يحتاج صيانة</option><option>تالف</option><option>خارج الخدمة</option></select></div>
+   <div style="grid-column:1/-1"><label>ملاحظات</label><input id="a_nt"></div>
+  </div>
+  <div class="err" id="a_er"></div>
+  <div class="btns"><button class="btn" id="a_sv">حفظ</button><button class="btn alt" id="a_gen">توليد باركود تلقائي</button><button class="btn alt" id="a_new">جديد</button></div>
+ </div>
+ <div class="card"><h2>سجل الأصول</h2>
+  <div class="tb" id="a_tabs"><button data-c="">الكل</button><button data-c="أدوات">🔧 أدوات</button><button data-c="أثاث">🪑 أثاث</button><button data-c="أجهزة الشركة">💻 أجهزة الشركة</button></div>
+  <input id="a_q" placeholder="بحث بالباركود أو الاسم أو الموقع…" style="max-width:340px;margin-bottom:10px">
+  <div id="a_sum" class="calc"></div>
+  <div class="scroll"><table><thead><tr><th>الباركود</th><th>اسم الأصل</th><th>التصنيف</th><th>الموقع</th><th>العهدة</th><th>تاريخ الشراء</th><th>القيمة</th><th>الحالة</th><th></th></tr></thead><tbody id="a_rows"></tbody></table></div>
+ </div>
 </section>
 
 <section id="p-rep" hidden>
@@ -272,7 +296,7 @@
  <div class="mhd"><span>تكويد المنتجين</span><button class="mx" id="p_x" title="إغلاق">✕</button></div>
  <div class="mbody"><div class="mpanel"><u class="mtl">بيانات المنتج</u>
   <div class="grid">
-   <div><label>الكود</label><input id="p_c" readonly></div>
+   <div><label>الكود (يدوي أو تلقائي)</label><input id="p_c" inputmode="numeric" maxlength="10" placeholder="رقم الكود"></div>
    <div><label>اسم المنتج</label><input id="p_n"></div>
    <div><label>النوع</label><select id="p_t"><option>وسيط</option><option>وكيل</option><option>سمسار</option><option>بنك</option></select></div>
    <div><label>الهاتف</label><input id="p_p"></div>
@@ -287,7 +311,7 @@
  <div class="mhd"><span>مساعد البوليصة</span><button class="mx" id="w_x" title="إغلاق">✕</button></div>
  <div class="mbody"><div class="mpanel"><u class="mtl">تفاصيل الوثيقة</u>
   <div class="wrow"><label>العملية</label><select id="w_op"></select></div>
-  <div class="wrow"><label>اسم</label><div class="wmulti"><input id="w_cc" readonly value="0" style="max-width:110px"><input id="w_cn" autocomplete="off" placeholder="اسم العميل"><button class="dots" id="w_cb" type="button" title="اختيار عميل سابق">…</button></div><div class="wpick" id="w_pick" hidden></div></div>
+  <div class="wrow"><label>اسم</label><div class="wmulti"><input id="w_cc" value="0" inputmode="numeric" title="كود العميل" style="max-width:110px"><input id="w_cn" autocomplete="off" placeholder="اسم العميل"><button class="dots" id="w_cb" type="button" title="اختيار عميل سابق">…</button></div><div class="wpick" id="w_pick" hidden></div></div>
   <div class="wrow2"><div><label>تاريخ البداية</label><input id="w_s" type="date"></div><div><label>تاريخ النهاية</label><input id="w_e" type="date"></div></div>
   <div class="wrow"><label>تاريخ الإصدار</label><input id="w_i" type="date" readonly style="max-width:200px"></div>
   <div class="wrow"><label>منتج</label><select id="w_pr"></select></div>
