@@ -254,6 +254,10 @@ th{background:var(--pri2);color:var(--pri)}
      <div><label>البيان المراد تغييره</label><select id="e_fld"></select></div>
      <div><label>القيمة الحالية</label><input id="e_old" readonly></div>
      <div><label>القيمة الجديدة</label><input id="e_new"></div>
+     <div id="e_car_ids" class="grid" style="grid-column:1/-1;margin-top:4px" hidden>
+      <div><label>تعديل رقم الشاسيه (اختياري)</label><input id="e_chg_chassis" placeholder="أدخل رقم الشاسيه الجديد"></div>
+      <div><label>تعديل رقم الماتور (اختياري)</label><input id="e_chg_motor" placeholder="أدخل رقم الموتور الجديد"></div>
+     </div>
      <div style="display:flex;align-items:end"><label style="display:flex;gap:6px;align-items:center;color:var(--tx);margin:0"><input type="checkbox" id="e_upd" checked style="width:auto"> تحديث بيانات الوثيقة تلقائيًا</label></div>
     </div>
     <div id="e_add" class="grid" style="margin-top:12px">
@@ -304,7 +308,7 @@ th{background:var(--pri2);color:var(--pri)}
     <div style="margin-top:12px"><label>ملاحظات (اختياري)</label><input id="e_n"></div>
     <div id="e_fin" class="calc"></div>
     <div class="err" id="e_err"></div>
-    <div class="btns"><button class="btn" id="e_save">💾 حفظ وإصدار الملحق</button><button class="btn alt" id="e_clr">مسح البيانات</button></div>
+    <div class="btns"><button class="btn" id="e_save">💾 حفظ وإصدار الملحق</button><button class="btn alt" id="e_basic_btn" type="button" hidden>📄 البيانات الأساسية للوثيقة</button><button class="btn alt" id="e_clr">مسح البيانات</button></div>
    </div>
   </div>
   <div class="card"><h2>سجل الملاحق</h2><div class="scroll"><table><thead><tr><th>رقم الملحق</th><th>النوع</th><th>رقم الوثيقة</th><th>العميل</th><th>تاريخ السريان</th><th>الأثر المالي</th><th>المُصدِر</th><th></th></tr></thead><tbody id="e_rows"></tbody></table></div></div>
@@ -491,6 +495,37 @@ th{background:var(--pri2);color:var(--pri)}
  </div></div>
  <div class="mft"><button class="btn" id="w_ok">حفظ</button><button class="btn alt" id="w_no">إلغاء</button></div>
 </div></div>
+</div>
+
+
+<div id="polBasicModal" class="modal" hidden>
+  <div class="mbox" style="max-width:820px">
+    <div class="mhd"><span id="pbm_title">تعديل البيانات الأساسية للوثيقة</span><button class="mx" id="pbm_x" title="إغلاق">✕</button></div>
+    <div class="mbody">
+      <div class="mpanel" id="pbm_body"></div>
+      <div class="err" id="pbm_err"></div>
+    </div>
+    <div class="mft">
+      <button class="btn" id="pbm_save">💾 حفظ التعديلات على الوثيقة</button>
+      <button class="btn alt" id="pbm_close">إغلاق</button>
+    </div>
+  </div>
+</div>
+<div id="endorsementModal" class="modal" hidden>
+  <div class="mbox" style="max-width:540px">
+    <div class="mhd"><span id="endModalTitle">تعديل بيانات السيارة والوثيقة</span><button class="mx" id="end_mx" title="إغلاق">✕</button></div>
+    <div class="mbody"><div class="mpanel">
+      <u class="mtl" id="endModalSub">بيانات التعديل للملحق</u>
+      <div class="grid">
+        <div><label>رقم اللوحة الجديد</label><input id="em_plate" placeholder="أدخل رقم اللوحة"></div>
+        <div><label>موديل السيارة</label><input id="em_model" placeholder="أدخل موديل السيارة"></div>
+        <div><label>رقم الشاصي (Chassis)</label><input id="em_chassis" placeholder="رقم الشاصي"></div>
+        <div><label>سبب التعديل / التفاصيل</label><input id="em_reason" placeholder="سبب التعديل"></div>
+      </div>
+      <div class="err" id="em_err"></div>
+    </div></div>
+    <div class="mft"><button class="btn" id="em_ok">حفظ وتطبيق التعديلات</button><button class="btn alt" id="em_no">إلغاء</button></div>
+  </div>
 </div>
 
 <script>
@@ -1485,7 +1520,7 @@ function endUI(t){
   $("e_pl").innerHTML=eDocs().map(d=>`<option value="${esc(d.no)}">${esc(d.f.name)}</option>`).join("");
   ["e_p","e_cl","e_pi","e_new","e_old","e_av","e_ar","e_ap","e_ac","e_n","e_pb","e_rf","e_xb","e_xm","e_xp","e_xn","e_rb","e_rm","e_rn","e_rr","e_nb","e_nm","e_nn","e_np","e_ib","e_is","e_iu","e_ip","e_ia","e_iq","e_in"].forEach(i=>$(i).value="");
   $("e_d").value=today();$("e_dd").value=0;$("e_rd").value=0;$("e_na").value=0;$("e_ic").value=0;$("e_am").checked=false;$("e_xman").checked=false;$("e_upd").checked=true;$("e_fld").innerHTML="";$("e_err").textContent="";
-  $("e_at").value="زيادة مبلغ التأمين";$("e_acw").hidden=true;eCalc();
+  $("e_at").value="زيادة مبلغ التأمين";$("e_acw").hidden=true;if($("e_car_ids"))$("e_car_ids").hidden=true;if($("e_chg_chassis"))$("e_chg_chassis").value="";if($("e_chg_motor"))$("e_chg_motor").value="";if($("e_basic_btn"))$("e_basic_btn").hidden=(et!=="chg"&&et!=="add");eCalc();
  }
  endList();
 }
@@ -1551,8 +1586,78 @@ $("e_p").oninput=()=>{
   $("e_acl").innerHTML=names.map(n=>`<option value="${esc(n)}">`).join("");
   $("e_pb").value=+((d.pm?d.pm.due:d.c.prem)||0).toFixed(2);$("e_xb").value=$("e_pb").value;if(et=="ext")$("e_d").value=d.end;$("e_rb").value=$("e_pb").value;$("e_nb").value=$("e_pb").value;$("e_ib").value=$("e_pb").value;$("e_is").value=d.f.sum;if(et=="ren"){$("e_d").value=d.end;$("e_nm").value=d.f.months}
  }else{["e_pb","e_xb","e_rb","e_nb","e_ib","e_is"].forEach(i=>{$(i).value=""})}
+ if($("e_car_ids")){
+  $("e_car_ids").hidden=!(d&&d.cur==="car");
+  if(d&&d.cur==="car"){
+   $("e_chg_chassis").placeholder="الحالي: "+(d.f.chassis||"—");
+   $("e_chg_motor").placeholder="الحالي: "+(d.f.motor||"—");
+   $("e_chg_chassis").value="";
+   $("e_chg_motor").value="";
+  }
+ }
  eCalc();
+ if(d&&(et==="chg"||et==="add"))openPolBasicModal(d);
 };
+function openPolBasicModal(d){
+ if(!d)d=eDoc();
+ if(!d){$("e_err").textContent="اختر رقم وثيقة صحيح أولاً لعرض وتعديل بياناتها الأساسية";return}
+ const f=d.f,k=d.cur;
+ $("pbm_title").textContent="تعديل البيانات الأساسية للوثيقة — "+d.no;
+ $("pbm_err").textContent="";
+ const editFields=F[k].filter(([id])=>!["start","months","sum"].includes(id));
+ $("pbm_body").innerHTML=`
+  <div style="margin-bottom:10px;font-size:.88rem;color:#0f4c81">
+    <b>رقم الوثيقة:</b> ${esc(d.no)} &nbsp;|&nbsp;
+    <b>القسم:</b> ${k=="car"?"تأمين السيارات":"التأمينات العامة"} &nbsp;|&nbsp;
+    <b>الفترة:</b> ${esc(f.start)} ← ${esc(d.end)}
+  </div>
+  <div class="grid">
+   ${editFields.map(([id,l,t,o])=>`<div><label>${esc(l)}</label>${
+     t=="select"
+       ? `<select data-pbm="${id}">${o.map(x=>`<option value="${esc(x)}"${String(f[id]||"")==String(x)?" selected":""}>${esc(x)}</option>`).join("")}</select>`
+       : `<input data-pbm="${id}" type="${t||"text"}" value="${esc(f[id]||"")}">`
+   }</div>`).join("")}
+  </div>`;
+ $("polBasicModal").hidden=false;
+ if($("pbm_save"))$("pbm_save").onclick=()=>{
+  const changes=[];
+  $("pbm_body").querySelectorAll("[data-pbm]").forEach(el=>{
+   const id=el.dataset.pbm,nv=el.value.trim(),ov=String(f[id]||"");
+   if(nv!==ov){
+    const lbl=(F[k].find(x=>x[0]==id)||[id,id])[1];
+    changes.push({id,lbl,ov,nv});
+    f[id]=nv;
+   }
+  });
+  if(!changes.length){
+   $("pbm_err").textContent="لم يتم إجراء أي تغيير على البيانات الأساسية";
+   return;
+  }
+  d.edited=today();
+  d.editedBy=me.n;
+  sv("ins_docs",docs);
+  audit("doc-edit-end",d.no+" ("+changes.map(c=>c.lbl).join("، ")+")");
+  $("e_cl").value=d.f.name;
+  $("e_pi").value=(d.cur=="car"?"سيارة — "+d.f.use+" — "+d.f.plate:"عام — "+d.f.kind)+" | "+d.f.start+" ← "+d.end;
+  if($("e_car_ids")&&d.cur==="car"){
+   $("e_chg_chassis").placeholder="الحالي: "+(d.f.chassis||"—");
+   $("e_chg_motor").placeholder="الحالي: "+(d.f.motor||"—");
+  }
+  if(et==="chg"&&changes.length===1){
+   $("e_fld").value=changes[0].id;
+   $("e_old").value=changes[0].ov||"—";
+   $("e_new").value=changes[0].nv;
+  }else{
+   eOld();
+  }
+  $("pbm_err").innerHTML='<span class="ok">تم حفظ تعديلات البيانات الأساسية للوثيقة بنجاح</span>';
+  setTimeout(()=>{$("polBasicModal").hidden=true},600);
+ };
+}
+if($("e_basic_btn"))$("e_basic_btn").onclick=()=>openPolBasicModal();
+if($("pbm_x"))$("pbm_x").onclick=()=>{$("polBasicModal").hidden=true};
+if($("pbm_close"))$("pbm_close").onclick=()=>{$("polBasicModal").hidden=true};
+if($("polBasicModal"))$("polBasicModal").onclick=e=>{if(e.target===$("polBasicModal"))$("polBasicModal").hidden=true};
 $("e_fld").onchange=eOld;
 $("e_at").onchange=()=>{$("e_acw").hidden=$("e_at").value!="إضافة تغطية";eCalc()};
 ["e_d","e_av","e_ar","e_ap","e_am","e_dd","e_xm","e_xp","e_xman","e_rm","e_rd","e_nm","e_na","e_ip","e_ic"].forEach(i=>{$(i).addEventListener("input",eCalc);$(i).addEventListener("change",eCalc)});
@@ -1570,10 +1675,29 @@ $("e_save").onclick=()=>{
  const rec={no:"",type:et,pno:d.no,cur:d.cur,client:d.f.name,eff,notes:$("e_n").value.trim(),by:me.n,byU:me.u,date:today(),data:{},amt:0,fees:0};
  if(et=="chg"){
   const k=$("e_fld").value,nv=$("e_new").value.trim();
-  if(!k){e.textContent="اختر البيان المراد تغييره";return}
-  if(!nv){e.textContent="أدخل القيمة الجديدة";return}
-  if(k!="_"&&nv==String(d.f[k]||"")){e.textContent="القيمة الجديدة مطابقة للقيمة الحالية";return}
-  rec.data={k,lab:k=="_"?"بيان آخر":$("e_fld").selectedOptions[0].textContent,old:$("e_old").value.trim()||"—",nw:nv,upd:k!="_"&&$("e_upd").checked};
+  const nCh=$("e_chg_chassis")?$("e_chg_chassis").value.trim():"";
+  const nMt=$("e_chg_motor")?$("e_chg_motor").value.trim():"";
+  if(!nv&&!nCh&&!nMt){e.textContent="أدخل القيمة الجديدة أو رقم الشاسيه / الماتور الجديد";return}
+  if(nv&&k!="_"&&nv==String(d.f[k]||"")&&!nCh&&!nMt){e.textContent="القيمة الجديدة مطابقة للقيمة الحالية";return}
+  const extra=[];
+  if(nCh){
+   if(nCh===String(d.f.chassis||"")){e.textContent="رقم الشاسيه الجديد مطابق للحالي";return}
+   extra.push(`الشاسيه: ${d.f.chassis||"—"} ← ${nCh}`);
+   if($("e_upd").checked)d.f.chassis=nCh;
+  }
+  if(nMt){
+   if(nMt===String(d.f.motor||"")){e.textContent="رقم الماتور الجديد مطابق للحالي";return}
+   extra.push(`الماتور: ${d.f.motor||"—"} ← ${nMt}`);
+   if($("e_upd").checked)d.f.motor=nMt;
+  }
+  const mainLab=nv?(k=="_"?"بيان آخر":$("e_fld").selectedOptions[0].textContent):"تعديل بيانات المركبة";
+  rec.data={
+   k:nv?k:"_",
+   lab:extra.length?(nv?mainLab+" + "+extra.join(" | "):extra.join(" | ")):mainLab,
+   old:nv?($("e_old").value.trim()||"—"):"—",
+   nw:nv? (extra.length?nv+" ("+extra.join(" | ")+")":nv) : extra.join(" | "),
+   upd:$("e_upd").checked
+  };
  }
  if(et=="add"){
   const av=+$("e_av").value,p=+$("e_ap").value||0,isCov=$("e_at").value=="إضافة تغطية",ac=$("e_ac").value.trim();
@@ -1635,9 +1759,32 @@ $("e_save").onclick=()=>{
  const t=et;endUI(t);renderEnd(rec);$("e_err").innerHTML='<span class="ok">تم إصدار الملحق '+esc(rec.no)+'</span>';
 };
 function endList(){
- const l=ends;
- $("e_rows").innerHTML=l.length?l.map(x=>`<tr><td>${esc(x.no)}</td><td>${esc(ET[x.type])}</td><td>${esc(x.pno)}</td><td>${esc(x.client)}</td><td>${esc(x.eff)}</td><td>${x.amt>0?"+"+fmt(x.amt+x.fees):x.amt<0?"−"+fmt(-x.amt):"—"}</td><td>${esc(x.by)}</td><td><button class="btn sm alt" data-v="${esc(x.no)}">عرض / طباعة</button></td></tr>`).join(""):'<tr><td colspan="8">لا توجد ملاحق بعد</td></tr>';
+ const l=ends,adm=isAdmin();
+ $("e_rows").innerHTML=l.length?l.map(x=>`<tr><td>${esc(x.no)}</td><td>${esc(ET[x.type])}</td><td>${esc(x.pno)}</td><td>${esc(x.client)}</td><td>${esc(x.eff)}</td><td>${x.amt>0?"+"+fmt(x.amt+x.fees):x.amt<0?"−"+fmt(-x.amt):"—"}</td><td>${esc(x.by)}</td><td style="white-space:nowrap"><button class="btn sm alt" data-v="${esc(x.no)}">عرض / طباعة</button>${adm?` <button class="btn sm red" data-edel="${esc(x.no)}">🗑 حذف</button>`:""}</td></tr>`).join(""):'<tr><td colspan="8">لا توجد ملاحق بعد</td></tr>';
  $("e_rows").querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>renderEnd(ends.find(x=>x.no==b.dataset.v)));
+ $("e_rows").querySelectorAll("[data-edel]").forEach(b=>b.onclick=()=>{
+  if(!isAdmin())return;
+  if(!b.dataset.s){b.dataset.s="1";b.textContent="تأكيد الحذف؟";return}
+  const eno=b.dataset.edel,rec=ends.find(x=>x.no==eno);
+  if(rec){
+   const d=docs.find(x=>x.no==rec.pno);
+   if(d){
+    if((rec.type=="cls"||rec.type=="clsf")&&d.closed&&d.closed.end==eno)delete d.closed;
+    if(rec.type=="ext"&&rec.data&&rec.data.oldEnd){d.end=rec.data.oldEnd;d.f.months=String(Math.max(1,(+d.f.months||0)-(+rec.data.xm||0)))}
+    if(rec.type=="red"&&rec.data&&rec.data.oldEnd){d.end=rec.data.oldEnd;d.f.months=String((+d.f.months||0)+(+rec.data.rm||0))}
+    if(rec.type=="ren"&&rec.data&&rec.data.oldEnd){d.end=rec.data.oldEnd;d.f.months=String(Math.max(1,(+d.f.months||0)-(+rec.data.nm||0)));if(d.renewals>0)d.renewals--}
+    if(rec.type=="int"&&rec.data&&rec.data.pc)d.icess=Math.max(0,(d.icess||0)-(+rec.data.pc||0));
+    if(rec.type=="chg"&&rec.data&&rec.data.upd&&rec.data.k&&rec.data.old&&rec.data.old!=="—")d.f[rec.data.k]=rec.data.old;
+    sv("ins_docs",docs);
+   }
+  }
+  audit("end-delete",eno);
+  ends=ends.filter(x=>x.no!=eno);
+  sv("ins_end",ends);
+  if(!$("edoc").hidden)$("edoc").hidden=true;
+  if(!$("edbtns").hidden)$("edbtns").hidden=true;
+  endList();
+ });
 }
 function renderEnd(r){
  const d=docs.find(x=>x.no==r.pno),f=d?d.f:{};
