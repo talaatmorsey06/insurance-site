@@ -241,7 +241,7 @@ th{background:var(--pri2);color:var(--pri)}
 
 <section id="p-end" hidden>
  <div class="np">
-  <div class="tb" id="e_tabs"><button data-go="docs">📄 الوثائق</button><button data-go="cust">👤 العملاء</button><button data-t="chg">✎ تغييرات عامة</button><button data-t="add">＋ إضافة</button><button data-t="ext">⏩ مد الفترة</button><button data-t="red">⏪ تقليل الفترة</button><button data-t="ren">🔄 تجديد</button><button data-t="int">🏢 إسناد داخلي</button><button data-t="cls">⛔ إلغاء بالتصفية</button></div>
+  <div class="tb" id="e_tabs"><button data-go="docs">📄 الوثائق</button><button data-go="cust">👤 العملاء</button><button data-t="chg">✎ تغييرات عامة</button><button data-t="add">＋ إضافة</button><button data-t="ext">⏩ مد الفترة</button><button data-t="red">⏪ تقليل الفترة</button><button data-t="ren">🔄 تجديد</button><button data-t="int">🏢 إسناد داخلي</button><button data-t="cls">⛔ إلغاء بالتصفية</button><button data-t="clsf">💸 إلغاء مع استرجاع القسط</button></div>
   <div id="e_form" hidden>
    <div class="card"><h2 id="e_h"></h2>
     <div class="grid">
@@ -267,7 +267,7 @@ th{background:var(--pri2);color:var(--pri)}
     <div id="e_cls" class="grid" style="margin-top:12px">
      <div><label>سبب الإلغاء</label><select id="e_cr"><option>طلب العميل</option><option>عدم السداد</option><option>بيع السيارة / زوال الخطر</option><option>هلاك كلي</option><option>أخرى</option></select></div>
      <div><label>القسط المسدد (ج.م)</label><input id="e_pb" readonly></div>
-     <div><label>نسبة خصم المصاريف %</label><input id="e_dd" type="number" min="0" max="100" step="any" value="0"></div>
+     <div id="e_ddw"><label>نسبة خصم المصاريف %</label><input id="e_dd" type="number" min="0" max="100" step="any" value="0"></div>
      <div><label>القسط المسترد (ج.م)</label><input id="e_rf" readonly></div>
     </div>
     <div id="e_ext" class="grid" style="margin-top:12px" hidden>
@@ -579,7 +579,7 @@ function enter(){
  if(!isAdmin()&&(can("cust")||can("prod")||can("ast")))dep.push("التكويد");
  $("dep").textContent=dep.join(" + ")||"—";["st_cu","snewc"].forEach(i=>{$(i).hidden=!can("cust")});["st_pr","cu_t_pr"].forEach(i=>{$(i).hidden=!can("prod")});$("e_tabs").querySelector('[data-go="cust"]').hidden=!can("cust");
  $("hnote").textContent=ins.length?"اختر من القائمة العلوية: وثيقة ← نوع الوثيقة المراد إصدارها":(can("cust")||can("prod")||can("ast")?"استخدم القوائم المتاحة لك (التكويد / أصول الشركة)":"لا توجد صلاحيات إصدار لحسابك، تواصل مع المدير.");
- const M=[["وثيقة",ins.concat(ins.length&&can("cust")?[["cust","تكويد العملاء"]]:[],ins.length?[["upl","رفع المستندات"]]:[])],["التكويد",(can("cust")?[["cust","تكويد العملاء"]]:[]).concat(can("prod")?[["prods","تكويد المنتجين"]]:[])],["أصول الشركة",can("ast")?[["ast","إدخال باركود الأصول"]]:[]],["الملاحق",ins.length?[["end_chg","ملحق تغييرات عامة"],["end_add","ملحق إضافة"],["end_ext","ملحق مد فترة التأمين"],["end_red","ملحق تقليل فترة التأمين"],["end_ren","ملحق تجديد وثيقة"]].concat(isAdmin()?[["end_int","ملحق إسناد داخلي"],["end_cls","ملحق إلغاء بالتصفية"]]:[]).concat([["end_list","سجل الملاحق"]]):[]],["التعويضات",(ins.length&&can("clm")?[["clm","إنشاء تعويض"]]:[]).concat(can("rep")?[["crep","تقارير التعويضات"]]:[])],["الطباعة",[["prt","نموذج الطباعة"]]],["التقارير",can("rep")?[["rep","عرض التقرير"]]:[]],["أشياء أخرى",isAdmin()?[["usr","المستخدمون والصلاحيات"],["sec","سجل الأمان"]]:[]],["إعادة التأمين",isAdmin()?[["ri","إضافة اتفاقية"]]:[]]];
+ const M=[["وثيقة",ins.concat(ins.length&&can("cust")?[["cust","تكويد العملاء"]]:[],ins.length?[["upl","رفع المستندات"]]:[])],["التكويد",(can("cust")?[["cust","تكويد العملاء"]]:[]).concat(can("prod")?[["prods","تكويد المنتجين"]]:[])],["أصول الشركة",can("ast")?[["ast","إدخال باركود الأصول"]]:[]],["الملاحق",ins.length?[["end_chg","ملحق تغييرات عامة"],["end_add","ملحق إضافة"],["end_ext","ملحق مد فترة التأمين"],["end_red","ملحق تقليل فترة التأمين"],["end_ren","ملحق تجديد وثيقة"],["end_int","ملحق إسناد داخلي"],["end_cls","ملحق إلغاء بالتصفية"],["end_clsf","ملحق إلغاء مع استرجاع القسط"],["end_list","سجل الملاحق"]]:[]],["التعويضات",(ins.length&&can("clm")?[["clm","إنشاء تعويض"]]:[]).concat(can("rep")?[["crep","تقارير التعويضات"]]:[])],["الطباعة",[["prt","نموذج الطباعة"]]],["التقارير",can("rep")?[["rep","عرض التقرير"]]:[]],["أشياء أخرى",isAdmin()?[["usr","المستخدمون والصلاحيات"],["sec","سجل الأمان"]]:[]],["إعادة التأمين",isAdmin()?[["ri","إضافة اتفاقية"]]:[]]];
  $("menu").innerHTML='<div class="mi"><button class="d" data-k="home">المنزل</button></div>'+M.filter(m=>m[1].length).map(([t,it])=>`<div class="mi"><button>${t}</button><div class="dd">${it.map(([k,l])=>`<button data-k="${k}"${k?"":" disabled"}>${l}</button>`).join("")}</div></div>`).join("");
  $("menu").querySelectorAll(".mi>button").forEach(b=>b.onclick=e=>{e.stopPropagation();if(b.dataset.k){closeM();show(b.dataset.k);return}const p=b.parentNode,o=p.classList.contains("open");closeM();if(!o)p.classList.add("open")});
  $("menu").querySelectorAll(".dd button").forEach(b=>b.onclick=()=>{closeM();show(b.dataset.k)});
@@ -1109,7 +1109,7 @@ $("pw_ok").onclick=async()=>{
  await setPw(me,n);delete me.def;sv("ins_users",users);audit("pw-change",me.u);
  pwForced=false;$("pwmod").hidden=true;$("tmpb").hidden=true;
 };
-const EVL={login:"دخول ناجح","login-fail":"محاولة دخول خاطئة","login-locked":"قفل مؤقت للدخول",logout:"تسجيل خروج","logout-idle":"خروج بسبب الخمول","pw-change":"تغيير كلمة المرور","pw-change-fail":"محاولة تغيير كلمة مرور فاشلة","user-add":"إضافة مستخدم","user-reset":"إعادة تعيين كلمة مرور","user-delete":"حذف مستخدم","doc-delete":"حذف وثيقة","doc-edit":"تعديل وثيقة","doc-cancel":"إلغاء وثيقة بالتصفية","copy-removed":"إزالة علامة COPY","purge-pii":"حذف بيانات شخصية قديمة","asset-add":"إضافة أصل","asset-delete":"حذف أصل"};
+const EVL={login:"دخول ناجح","login-fail":"محاولة دخول خاطئة","login-locked":"قفل مؤقت للدخول",logout:"تسجيل خروج","logout-idle":"خروج بسبب الخمول","pw-change":"تغيير كلمة المرور","pw-change-fail":"محاولة تغيير كلمة مرور فاشلة","user-add":"إضافة مستخدم","user-reset":"إعادة تعيين كلمة مرور","user-delete":"حذف مستخدم","doc-delete":"حذف وثيقة","doc-edit":"تعديل وثيقة","doc-cancel":"إلغاء وثيقة بالتصفية","doc-cancel-refund":"إلغاء وثيقة مع استرجاع القسط","copy-removed":"إزالة علامة COPY","purge-pii":"حذف بيانات شخصية قديمة","asset-add":"إضافة أصل","asset-delete":"حذف أصل"};
 function secUI(){
  if(!isAdmin())return;
  const a=ld("ins_audit",[]).slice(0,200),B=["login-fail","login-locked","pw-change-fail"];
@@ -1430,15 +1430,15 @@ $("w_ok").onclick=()=>{
 };
 /* ---------- endorsements ---------- */
 let ends=ld("ins_end",[]),et=null;
-const ET={chg:"ملحق تغييرات عامة",add:"ملحق إضافة",ext:"ملحق مد فترة التأمين",red:"ملحق تقليل فترة التأمين",ren:"ملحق تجديد وثيقة",int:"ملحق إسناد داخلي",cls:"ملحق إلغاء بالتصفية"};
+const ET={chg:"ملحق تغييرات عامة",add:"ملحق إضافة",ext:"ملحق مد فترة التأمين",red:"ملحق تقليل فترة التأمين",ren:"ملحق تجديد وثيقة",int:"ملحق إسناد داخلي",cls:"ملحق إلغاء بالتصفية",clsf:"ملحق إلغاء مع استرجاع القسط"};
 const pctFees=FEES.reduce((n,x)=>n+(x[1]||0),0);
 const FLD={all:[["name","اسم المؤمَّن له"],["addr","العنوان"]],car:[["plate","رقم اللوحة"],["chassis","رقم الشاسيه"],["motor","رقم الموتور"],["color","اللون"],["model","الموديل"],["year","سنة الصنع"]],gen:[["item","وصف الشيء المؤمَّن عليه"],["place","موقع الخطر"],["bene","المستفيد"]]};
 const eDocs=()=>myDocs().filter(d=>!d.closed);
 const eDoc=()=>eDocs().find(d=>d.no==$("e_p").value.trim());
 function endUI(t){
- et=ET[t]&&(t!="cls"&&t!="int"||isAdmin())?t:null;
- $("e_tabs").querySelectorAll("button").forEach(b=>{b.classList.toggle("sel",b.dataset.t===et);if(b.dataset.t=="cls"||b.dataset.t=="int")b.hidden=!isAdmin()});
- $("e_form").hidden=!et;$("e_chg").hidden=et!="chg";$("e_add").hidden=et!="add";$("e_cls").hidden=et!="cls";$("e_ext").hidden=et!="ext";$("e_red").hidden=et!="red";$("e_ren").hidden=et!="ren";$("e_int").hidden=et!="int";
+ et=ET[t]?t:null;
+ $("e_tabs").querySelectorAll("button").forEach(b=>{b.classList.toggle("sel",b.dataset.t===et)});
+ $("e_form").hidden=!et;$("e_chg").hidden=et!="chg";$("e_add").hidden=et!="add";$("e_cls").hidden=(et!="cls"&&et!="clsf");$("e_ddw").hidden=et=="clsf";$("e_ext").hidden=et!="ext";$("e_red").hidden=et!="red";$("e_ren").hidden=et!="ren";$("e_int").hidden=et!="int";
  $("edoc").hidden=true;$("edbtns").hidden=true;
  if(et){
   $("e_h").textContent=ET[et];
@@ -1463,7 +1463,12 @@ function eCalc(){
   if(et=="cls"){
    const base=+$("e_pb").value||0,dd=Math.min(100,Math.max(0,+$("e_dd").value||0)),rf=base*rem*(1-dd/100);
    $("e_rf").value=rf.toFixed(2);
-   fin=`<div>القسط المسدد<b>${fmt(base)}</b></div><div>المدة المنقضية<b>${Math.round((1-rem)*100)}%</b></div><div class="tot">القسط المسترد<b>${fmt(rf)}</b></div>`;
+   fin=`<div>القسط المسدد<b>${fmt(base)}</b></div><div>المدة المنقضية<b>${Math.round((1-rem)*100)}%</b></div><div class="tot">القسط المسترد بالتصفية<b>${fmt(rf)}</b></div>`;
+  }
+  if(et=="clsf"){
+   const base=+$("e_pb").value||0,rf=base;
+   $("e_rf").value=rf.toFixed(2);
+   fin=`<div>القسط المسدد<b>${fmt(base)}</b></div><div>نسبة الاسترجاع<b>100%</b></div><div class="tot">القسط المسترد بالكامل<b>${fmt(rf)}</b></div>`;
   }
  }
  if(et=="ext"&&d){
@@ -1519,7 +1524,7 @@ $("doc_end").onclick=()=>{if(curDoc&&!curDoc.closed)openEnd(curDoc.no)};
 $("e_save").onclick=()=>{
  const e=$("e_err"),d=eDoc(),eff=$("e_d").value;
  if(!et)return;
- if((et=="cls"||et=="int")&&!isAdmin()){e.textContent="هذا الملحق للمدير فقط";return}
+
  if(!d){e.textContent="اختر رقم وثيقة صحيح (غير ملغاة) من القائمة";return}
  if(et!="red"&&(!eff||eff<d.f.start||eff>d.end)){e.textContent="تاريخ سريان الملحق خارج مدة الوثيقة ("+d.f.start+" إلى "+d.end+")";return}
  const rec={no:"",type:et,pno:d.no,cur:d.cur,client:d.f.name,eff,notes:$("e_n").value.trim(),by:me.n,byU:me.u,date:today(),data:{},amt:0,fees:0};
@@ -1541,6 +1546,11 @@ $("e_save").onclick=()=>{
  if(et=="cls"){
   const base=+$("e_pb").value||0,rf=+$("e_rf").value||0;
   rec.data={reason:$("e_cr").value,base,dd:+$("e_dd").value||0};
+  rec.amt=-rf;
+ }
+ if(et=="clsf"){
+  const base=+$("e_pb").value||0,rf=+$("e_rf").value||0;
+  rec.data={reason:$("e_cr").value,base,dd:0,fullRefund:true};
   rec.amt=-rf;
  }
  if(et=="ext"){
@@ -1576,12 +1586,12 @@ $("e_save").onclick=()=>{
  const y=new Date().getFullYear(),mx=Math.max(0,...ends.filter(x=>x.no.startsWith("END-"+y)).map(x=>+x.no.split("-")[2]||0));
  rec.no="END-"+y+"-"+String(mx+1).padStart(5,"0");
  if(et=="chg"&&rec.data.upd)d.f[rec.data.k]=rec.data.nw;
- if(et=="cls"){d.closed={date:eff,reason:rec.data.reason,refund:-rec.amt,end:rec.no};audit("doc-cancel",d.no)}
+ if(et=="cls"||et=="clsf"){d.closed={date:eff,reason:rec.data.reason,refund:-rec.amt,end:rec.no,type:et};audit(et=="clsf"?"doc-cancel-refund":"doc-cancel",d.no)}
  if(et=="ext"){d.f.months=String((+d.f.months||0)+rec.data.xm);d.end=rec.data.newEnd}
  if(et=="red"){d.f.months=String(Math.max(1,(+d.f.months||0)-rec.data.rm));d.end=rec.data.newEnd}
  if(et=="ren"){d.f.months=String((+d.f.months||0)+rec.data.nm);d.end=rec.data.newEnd;d.renewals=(d.renewals||0)+1}
  if(et=="int")d.icess=(d.icess||0)+rec.data.pc;
- ends.unshift(rec);sv("ins_end",ends);if(["ext","red","ren","int","cls"].includes(et)||(et=="chg"&&rec.data.upd))sv("ins_docs",docs);
+ ends.unshift(rec);sv("ins_end",ends);if(["ext","red","ren","int","cls","clsf"].includes(et)||(et=="chg"&&rec.data.upd))sv("ins_docs",docs);
  const t=et;endUI(t);renderEnd(rec);$("e_err").innerHTML='<span class="ok">تم إصدار الملحق '+esc(rec.no)+'</span>';
 };
 function endList(){
@@ -1594,12 +1604,13 @@ function renderEnd(r){
  let det="";
  if(r.type=="chg")det=`<tr><th>البيان المُعدَّل</th><td colspan="3">${esc(r.data.lab)}</td></tr><tr><th>القيمة السابقة</th><td>${esc(r.data.old)}</td><th>القيمة الجديدة</th><td>${esc(r.data.nw)}</td></tr>`;
  if(r.type=="add")det=`<tr><th>نوع الإضافة</th><td>${esc(r.data.at)}</td><th>${r.data.ac?"التغطية المضافة":"مبلغ التأمين المضاف"}</th><td>${r.data.ac?esc(r.data.ac)+" — ":""}${fmt(r.data.av)}</td></tr><tr><th>نسبة القسط</th><td>${esc(r.data.rate)}%</td><th>القسط الإضافي</th><td>${fmt(r.amt)}</td></tr><tr><th>الرسوم والدمغات</th><td>${fmt(r.fees)}</td><th>الإجمالي المستحق</th><td><b>${fmt(r.amt+r.fees)}</b></td></tr>`;
- if(r.type=="cls")det=`<tr><th>سبب الإلغاء</th><td>${esc(r.data.reason)}</td><th>القسط المسدد</th><td>${fmt(r.data.base)}</td></tr><tr><th>خصم المصاريف</th><td>${esc(r.data.dd)}%</td><th>القسط المسترد للعميل</th><td><b>${fmt(-r.amt)}</b></td></tr>`;
+ if(r.type=="cls")det=`<tr><th>سبب الإلغاء</th><td>${esc(r.data.reason)}</td><th>القسط المسدد</th><td>${fmt(r.data.base)}</td></tr><tr><th>خصم المصاريف</th><td>${esc(r.data.dd)}%</td><th>القسط المسترد بالتصفية</th><td><b>${fmt(-r.amt)}</b></td></tr>`;
+ if(r.type=="clsf")det=`<tr><th>سبب الإلغاء</th><td>${esc(r.data.reason)}</td><th>القسط المسدد</th><td>${fmt(r.data.base)}</td></tr><tr><th>نسبة الاسترجاع</th><td>100% (استرجاع كامل)</td><th>القسط المسترد للعميل</th><td><b>${fmt(-r.amt)}</b></td></tr>`;
  if(r.type=="red")det=`<tr><th>نهاية الوثيقة السابقة</th><td>${esc(r.data.oldEnd)}</td><th>نهاية الوثيقة الجديدة</th><td><b>${esc(r.data.newEnd)}</b></td></tr><tr><th>مدة التقليل</th><td>${esc(r.data.rm)} شهر</td><th>القسط المسدد</th><td>${fmt(r.data.base)}</td></tr><tr><th>خصم المصاريف</th><td>${esc(r.data.dd)}%</td><th>القسط المسترد للمؤمَّن له</th><td><b>${fmt(-r.amt)}</b></td></tr>`;
  if(r.type=="ren")det=`<tr><th>نهاية الوثيقة السابقة</th><td>${esc(r.data.oldEnd)}</td><th>نهاية الوثيقة بعد التجديد</th><td><b>${esc(r.data.newEnd)}</b></td></tr><tr><th>مدة التجديد</th><td>${esc(r.data.nm)} شهر</td><th>تعديل القسط</th><td>${esc(r.data.adj)}%</td></tr><tr><th>قسط التجديد</th><td>${fmt(r.amt)}</td><th>الرسوم والدمغات</th><td>${fmt(r.fees)}</td></tr><tr><th>الإجمالي المستحق</th><td colspan="3"><b>${fmt(r.amt+r.fees)}</b></td></tr>`;
  if(r.type=="int")det=`<tr><th>الجهة المسند إليها</th><td>${esc(r.data.to)}</td><th>نسبة الإسناد</th><td>${esc(r.data.pc)}%</td></tr><tr><th>مبلغ التأمين المسند</th><td>${fmt(r.data.sum)}</td><th>القسط المسند</th><td>${fmt(r.data.ced)}</td></tr><tr><th>عمولة الإسناد</th><td>${esc(r.data.cm)}%</td><th>صافي القسط المسند</th><td><b>${fmt(r.data.net)}</b></td></tr>`;
  if(r.type=="ext")det=`<tr><th>نهاية الوثيقة السابقة</th><td>${esc(r.data.oldEnd)}</td><th>نهاية الوثيقة الجديدة</th><td><b>${esc(r.data.newEnd)}</b></td></tr><tr><th>مدة التمديد</th><td>${esc(r.data.xm)} شهر</td><th>قسط التمديد</th><td>${fmt(r.amt)}</td></tr><tr><th>الرسوم والدمغات</th><td>${fmt(r.fees)}</td><th>الإجمالي المستحق</th><td><b>${fmt(r.amt+r.fees)}</b></td></tr>`;
- const stmt=r.type=="red"?"تُقلَّص فترة التأمين للوثيقة المذكورة إلى تاريخ النهاية الجديد الموضح أعلاه، ويُرَدّ القسط عن المدة المتبقية، وتبقى باقي الشروط والاشتراطات الواردة بالوثيقة كما هي دون أي تعديل أو تغيير.":r.type=="ren"?"تُجدَّد الوثيقة المذكورة لمدة التجديد الموضحة أعلاه اعتبارًا من تاريخ نهايتها السابق، وتبقى باقي الشروط والاشتراطات الواردة بالوثيقة كما هي دون أي تعديل أو تغيير.":r.type=="int"?"يُسند جزء من الخطر المؤمَّن عليه بالوثيقة المذكورة داخليًا إلى الجهة الموضحة أعلاه بالنسبة المذكورة، ولا يترتب على ذلك أي أثر على المؤمَّن له، وتبقى باقي الشروط والاشتراطات الواردة بالوثيقة كما هي دون أي تعديل أو تغيير.":r.type=="ext"?"يُمدّ سريان الوثيقة المذكورة إلى تاريخ النهاية الجديد الموضح أعلاه، وتبقى باقي الشروط والاشتراطات الواردة بالوثيقة كما هي دون أي تعديل أو تغيير.":r.type=="cls"?"تُلغى الوثيقة المذكورة بالتصفية اعتبارًا من تاريخ سريان هذا الملحق، ولا تُقبل أي مطالبات عن حوادث تقع بعد هذا التاريخ.":"يُعتبر هذا الملحق جزءًا لا يتجزأ من الوثيقة الأصلية، وتبقى باقي الشروط والاشتراطات الواردة بالوثيقة كما هي دون أي تعديل أو تغيير.";
+ const stmt=r.type=="red"?"تُقلَّص فترة التأمين للوثيقة المذكورة إلى تاريخ النهاية الجديد الموضح أعلاه، ويُرَدّ القسط عن المدة المتبقية، وتبقى باقي الشروط والاشتراطات الواردة بالوثيقة كما هي دون أي تعديل أو تغيير.":r.type=="ren"?"تُجدَّد الوثيقة المذكورة لمدة التجديد الموضحة أعلاه اعتبارًا من تاريخ نهايتها السابق، وتبقى باقي الشروط والاشتراطات الواردة بالوثيقة كما هي دون أي تعديل أو تغيير.":r.type=="int"?"يُسند جزء من الخطر المؤمَّن عليه بالوثيقة المذكورة داخليًا إلى الجهة الموضحة أعلاه بالنسبة المذكورة، ولا يترتب على ذلك أي أثر على المؤمَّن له، وتبقى باقي الشروط والاشتراطات الواردة بالوثيقة كما هي دون أي تعديل أو تغيير.":r.type=="ext"?"يُمدّ سريان الوثيقة المذكورة إلى تاريخ النهاية الجديد الموضح أعلاه، وتبقى باقي الشروط والاشتراطات الواردة بالوثيقة كما هي دون أي تعديل أو تغيير.":r.type=="cls"?"تُلغى الوثيقة المذكورة بالتصفية اعتبارًا من تاريخ سريان هذا الملحق، ولا تُقبل أي مطالبات عن حوادث تقع بعد هذا التاريخ.":r.type=="clsf"?"تُلغى الوثيقة المذكورة اعتبارًا من تاريخ سريان هذا الملحق مع استرجاع كامل القسط المسدد للمؤمَّن له، وتُعتبر الوثيقة كأن لم تكن ولا تُقبل أي مطالبات عنها.":"يُعتبر هذا الملحق جزءًا لا يتجزأ من الوثيقة الأصلية، وتبقى باقي الشروط والاشتراطات الواردة بالوثيقة كما هي دون أي تعديل أو تغيير.";
  $("edoc").innerHTML=`<h3>${esc(ET[r.type])}</h3><div class="sub">رقم الملحق: ${esc(r.no)} &nbsp;|&nbsp; تاريخ الإصدار: ${esc(r.date)} &nbsp;|&nbsp; المُصدِر: ${esc(r.by)}</div>
  <table><tr><th>رقم الوثيقة الأصلية</th><td>${esc(r.pno)}</td><th>المؤمَّن له</th><td>${esc(r.client)}</td></tr>
  <tr><th>نوع التأمين</th><td>${d?(d.cur=="car"?"سيارات — "+esc(f.use):"عام — "+esc(f.kind)):"—"}</td><th>مدة الوثيقة</th><td>${esc(f.start||"—")} ← ${esc(d?d.end:"—")}</td></tr>
