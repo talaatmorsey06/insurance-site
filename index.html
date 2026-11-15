@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>منظومة إصدار وثائق التأمين</title>
+<title>الحمد للتأمين العام — منظومة إصدار وثائق التأمين</title>
 <style>
 :root{--bg:#f4f6fa;--card:#fff;--tx:#1b2433;--mut:#5d6b82;--pri:#0f4c81;--pri2:#e6f0fa;--bd:#d5dce8;--ok:#1a7f4b;
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -135,6 +135,7 @@ th{background:var(--pri2);color:var(--pri)}
 </head>
 <body>
 <div id="auth" class="card">
+ <div style="text-align:center;font-size:1.3rem;font-weight:700;color:var(--pri);margin-bottom:8px">الحمد للتأمين العام</div>
  <h2 id="atitle" style="text-align:center"></h2>
  <div class="grid" style="grid-template-columns:1fr" id="afields"></div>
  <div class="err" id="aerr"></div>
@@ -143,7 +144,7 @@ th{background:var(--pri2);color:var(--pri)}
 </div>
 
 <div id="app" hidden>
-<div id="top" class="np"><div class="inf"><div><b>المستخدم الحالي</b><span id="who"></span> <button id="chpw" title="تغيير كلمة المرور">🔑 تغيير كلمة المرور</button> <button id="logout" title="تسجيل الخروج">⎋ خروج</button></div><div><b>منطقة النظام</b><span>المركز الرئيسي</span></div><div><b>التاريخ الحالي</b><span id="dt"></span></div><div><b>القسم</b><span id="dep"></span></div></div><div class="ttl" id="ttl"><h1>نظام التأمين العام</h1></div><div class="logo" id="logo"><i>🛡️</i>شعار الشركة</div></div>
+<div id="top" class="np"><div class="inf"><div><b>المستخدم الحالي</b><span id="who"></span> <button id="chpw" title="تغيير كلمة المرور">🔑 تغيير كلمة المرور</button> <button id="logout" title="تسجيل الخروج">⎋ خروج</button></div><div><b>منطقة النظام</b><span>المركز الرئيسي</span></div><div><b>التاريخ الحالي</b><span id="dt"></span></div><div><b>القسم</b><span id="dep"></span></div></div><div class="ttl" id="ttl"><h1>الحمد للتأمين العام</h1><div style="font-size:.85rem;color:var(--mut)">نظام التأمين العام</div></div><div class="logo" id="logo"><i>🛡️</i>الحمد</div></div>
 <nav id="menu" class="np"></nav>
 <div id="tmpb" class="phd np" hidden style="margin:8px;background:#fff3cd;color:#664d03;border-color:#e6c200"><span id="tmpt"></span> <button class="btn sm" id="tmpgo">فتح المستخدمين</button></div>
 <main>
@@ -732,7 +733,7 @@ function renderDoc(r){
  const rows=F[k].filter(([id])=>!["name","nid","phone","addr","sum","start","months"].includes(id)&&!(OPT.includes(id)&&!f[id])).map(([id,l])=>`<tr><th>${l}</th><td colspan="3">${esc(f[id])||"—"}</td></tr>`).join("");
  const terms=k=="car"?["تسري الوثيقة على السيارة الموضحة بياناتها خلال مدة التأمين المحددة.","يلتزم المؤمَّن له بإبلاغ الشركة بأي حادث خلال 48 ساعة.","نوع التأمين «"+esc(f.use)+"»"+(f.cover!="—"?" بمستوى تغطية «"+esc(f.cover)+"»":"")+" وفق الشروط العامة والاستثناءات المرفقة.","لا تسري الوثيقة إذا استُخدمت السيارة في غير الغرض المبيَّن بها.","يحق للشركة إلغاء الوثيقة عند ثبوت تقديم بيانات غير صحيحة."]:["تغطي الوثيقة الأخطار المؤمَّن ضدها فقط خلال مدة التأمين.","يلتزم المؤمَّن له باتخاذ الاحتياطات المعقولة لمنع وقوع الخسارة.","يجب إخطار الشركة فور وقوع أي حادث أو خسارة.","يُحدد التعويض على أساس القيمة الفعلية بما لا يتجاوز مبلغ التأمين.","يحق للشركة إلغاء الوثيقة عند ثبوت تقديم بيانات غير صحيحة."];
  const c=r.c;$("doc").hidden=false;$("docbtns").hidden=false;curDoc=r;$("doc_edit").hidden=$("doc_del").hidden=!isAdmin();$("doc_del").textContent="🗑 حذف الوثيقة";$("doc_del").dataset.s="";prnSt();
- $("doc").innerHTML=`<h3>${title}</h3><div class="sub">رقم الوثيقة: ${r.no} &nbsp;|&nbsp; تاريخ الإصدار: ${r.date} &nbsp;|&nbsp; المُصدِر: ${esc(r.by)}${r.edited?" &nbsp;|&nbsp; آخر تعديل: "+r.edited+" ("+esc(r.editedBy)+")":""}${r.closed?" &nbsp;|&nbsp; ⛔ ملغاة بتاريخ "+r.closed.date:""}</div>
+ $("doc").innerHTML=`<div style="text-align:center;font-weight:700;font-size:1.1rem;color:#0f4c81;margin-bottom:6px">الحمد للتأمين العام</div><h3>${title}</h3><div class="sub">رقم الوثيقة: ${r.no} &nbsp;|&nbsp; تاريخ الإصدار: ${r.date} &nbsp;|&nbsp; المُصدِر: ${esc(r.by)}${r.edited?" &nbsp;|&nbsp; آخر تعديل: "+r.edited+" ("+esc(r.editedBy)+")":""}${r.closed?" &nbsp;|&nbsp; ⛔ ملغاة بتاريخ "+r.closed.date:""}</div>
  <table><tr><th>المؤمَّن له</th><td colspan="3">${esc(f.name)}</td></tr>
  <tr><th>العنوان</th><td colspan="3">${esc(f.addr)}</td></tr>${rows}
  <tr><th>${k=="car"?"قيمة السيارة":"مبلغ التأمين"}</th><td>${fmt(f.sum)}</td><th>مدة التأمين</th><td>${esc(f.months)} شهر</td></tr>
@@ -1292,7 +1293,7 @@ $("rt_p").oninput=()=>{
  $("rt_ref").innerHTML='<option value="">الوثيقة الأصلية</option>'+(d?rtEnds().filter(x=>x.pno==d.no).map(x=>`<option value="${esc(x.no)}">${esc(x.no)} — ${esc(ET[x.type])}</option>`).join(""):"");
 };
 const kv=rows=>`<table>${rows.map(r=>r.length==2?`<tr><th>${r[0]}</th><td colspan="3">${r[1]}</td></tr>`:`<tr><th>${r[0]}</th><td>${r[1]}</td><th>${r[2]}</th><td>${r[3]}</td></tr>`).join("")}</table>`;
-const rtHead=(t,no)=>`<h3>${t}</h3><div class="sub">${no?"رقم: "+esc(no)+" &nbsp;|&nbsp; ":""}التاريخ: ${today()} &nbsp;|&nbsp; أعدّه: ${esc(me.n)}</div>`;
+const rtHead=(t,no)=>`<div style="text-align:center;font-weight:700;font-size:1.1rem;color:#0f4c81;margin-bottom:6px">الحمد للتأمين العام</div><h3>${t}</h3><div class="sub">${no?"رقم: "+esc(no)+" &nbsp;|&nbsp; ":""}التاريخ: ${today()} &nbsp;|&nbsp; أعدّه: ${esc(me.n)}</div>`;
 const lines=(a,tot,tl)=>`<table><tr><th style="width:auto">البيان</th><th style="width:auto">المبلغ</th></tr>${a.map(x=>`<tr><td>${esc(x[0])}</td><td>${fmt(x[1])}</td></tr>`).join("")}<tr><th style="width:auto">${tl}</th><td><b>${fmt(tot)}</b></td></tr></table>`;
 const sig='<div class="sig"><div><span>إعداد</span></div><div><span>مراجعة</span></div><div><span>اعتماد</span></div></div>';
 function prtBuild(){
@@ -1798,7 +1799,7 @@ function renderEnd(r){
  if(r.type=="int")det=`<tr><th>الجهة المسند إليها</th><td>${esc(r.data.to)}</td><th>نسبة الإسناد</th><td>${esc(r.data.pc)}%</td></tr><tr><th>مبلغ التأمين المسند</th><td>${fmt(r.data.sum)}</td><th>القسط المسند</th><td>${fmt(r.data.ced)}</td></tr><tr><th>عمولة الإسناد</th><td>${esc(r.data.cm)}%</td><th>صافي القسط المسند</th><td><b>${fmt(r.data.net)}</b></td></tr>`;
  if(r.type=="ext")det=`<tr><th>نهاية الوثيقة السابقة</th><td>${esc(r.data.oldEnd)}</td><th>نهاية الوثيقة الجديدة</th><td><b>${esc(r.data.newEnd)}</b></td></tr><tr><th>مدة التمديد</th><td>${esc(r.data.xm)} شهر</td><th>قسط التمديد</th><td>${fmt(r.amt)}</td></tr><tr><th>الرسوم والدمغات</th><td>${fmt(r.fees)}</td><th>الإجمالي المستحق</th><td><b>${fmt(r.amt+r.fees)}</b></td></tr>`;
  const stmt=r.type=="red"?"تُقلَّص فترة التأمين للوثيقة المذكورة إلى تاريخ النهاية الجديد الموضح أعلاه، ويُرَدّ القسط عن المدة المتبقية، وتبقى باقي الشروط والاشتراطات الواردة بالوثيقة كما هي دون أي تعديل أو تغيير.":r.type=="ren"?"تُجدَّد الوثيقة المذكورة لمدة التجديد الموضحة أعلاه اعتبارًا من تاريخ نهايتها السابق، وتبقى باقي الشروط والاشتراطات الواردة بالوثيقة كما هي دون أي تعديل أو تغيير.":r.type=="int"?"يُسند جزء من الخطر المؤمَّن عليه بالوثيقة المذكورة داخليًا إلى الجهة الموضحة أعلاه بالنسبة المذكورة، ولا يترتب على ذلك أي أثر على المؤمَّن له، وتبقى باقي الشروط والاشتراطات الواردة بالوثيقة كما هي دون أي تعديل أو تغيير.":r.type=="ext"?"يُمدّ سريان الوثيقة المذكورة إلى تاريخ النهاية الجديد الموضح أعلاه، وتبقى باقي الشروط والاشتراطات الواردة بالوثيقة كما هي دون أي تعديل أو تغيير.":r.type=="cls"?"تُلغى الوثيقة المذكورة بالتصفية اعتبارًا من تاريخ سريان هذا الملحق، ولا تُقبل أي مطالبات عن حوادث تقع بعد هذا التاريخ.":r.type=="clsf"?"تُلغى الوثيقة المذكورة اعتبارًا من تاريخ سريان هذا الملحق مع استرجاع كامل القسط المسدد للمؤمَّن له، وتُعتبر الوثيقة كأن لم تكن ولا تُقبل أي مطالبات عنها.":"يُعتبر هذا الملحق جزءًا لا يتجزأ من الوثيقة الأصلية، وتبقى باقي الشروط والاشتراطات الواردة بالوثيقة كما هي دون أي تعديل أو تغيير.";
- $("edoc").innerHTML=`<h3>${esc(ET[r.type])}</h3><div class="sub">رقم الملحق: ${esc(r.no)} &nbsp;|&nbsp; تاريخ الإصدار: ${esc(r.date)} &nbsp;|&nbsp; المُصدِر: ${esc(r.by)}</div>
+ $("edoc").innerHTML=`<div style="text-align:center;font-weight:700;font-size:1.1rem;color:#0f4c81;margin-bottom:6px">الحمد للتأمين العام</div><h3>${esc(ET[r.type])}</h3><div class="sub">رقم الملحق: ${esc(r.no)} &nbsp;|&nbsp; تاريخ الإصدار: ${esc(r.date)} &nbsp;|&nbsp; المُصدِر: ${esc(r.by)}</div>
  <table><tr><th>رقم الوثيقة الأصلية</th><td>${esc(r.pno)}</td><th>المؤمَّن له</th><td>${esc(r.client)}</td></tr>
  <tr><th>نوع التأمين</th><td>${d?(d.cur=="car"?"سيارات — "+esc(f.use):"عام — "+esc(f.kind)):"—"}</td><th>مدة الوثيقة</th><td>${esc(f.start||"—")} ← ${esc(d?d.end:"—")}</td></tr>
  <tr><th>تاريخ سريان الملحق</th><td colspan="3">${esc(r.eff)}</td></tr>${det}</table>
